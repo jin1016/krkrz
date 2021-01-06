@@ -11,6 +11,14 @@
 #include "gl3stub.h"
 #endif
 
+// OpenGL ES Graphics common header
+#include "GeoUtil.h"
+#include "GLTexture.h"
+#include "GLShaderUtil.h"
+#include "GLPixelBufferObject.h"
+#include "GLFrameBufferObject.h"
+#include "GLVertexBufferObject.h"
+
 
 extern void TVPInitializeOpenGLPlatform();
 
