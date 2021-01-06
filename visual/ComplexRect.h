@@ -13,6 +13,7 @@
 #define ComplexRectUnitH
 
 #include <stdlib.h>
+#include <algorithm>
 
 #ifndef __TJSTYPES_H__
 	typedef int tjs_int;
@@ -54,6 +55,13 @@ struct tTVPRect
 		{ left = l, top = t, right = r, bottom =b; }
 
 	tTVPRect() {};
+
+	tTVPRect(const tTVPRect& ref) { std::copy(ref.array, &(ref.array[4]), array); }
+	tTVPRect& operator=(const tTVPRect& rhs) { std::copy(rhs.array, &rhs.array[4], array); return *this; }
+
+	// moveだが実質的にコピーと同じ
+	tTVPRect( tTVPRect&& ref ) noexcept { *this = std::move(ref); }
+	tTVPRect& operator=(tTVPRect&& rhs) noexcept { std::copy(rhs.array, &rhs.array[4], array ); return *this; }
 
 	union
 	{
