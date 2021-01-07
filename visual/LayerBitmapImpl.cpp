@@ -384,7 +384,6 @@ tTVPBitmap::tTVPBitmap(tjs_uint width, tjs_uint height, tjs_uint bpp, bool unpad
 #ifdef _WIN32
 	TVPInitWindowOptions(); // ensure window/bitmap usage options are initialized
 #endif
-	RefCount = 1;
 
 	Allocate(width, height, bpp, unpadding); // allocate initial bitmap
 }
@@ -395,13 +394,12 @@ tTVPBitmap::tTVPBitmap(tjs_uint width, tjs_uint height, tjs_uint bpp, void* bits
 #ifdef _WIN32
 	TVPInitWindowOptions(); // ensure window/bitmap usage options are initialized
 #endif
-	RefCount = 1;
 
 	BitmapInfo = new BitmapInfomation( width, height, bpp );
 	Width = width;
 	Height = height;
 	PitchBytes = BitmapInfo->GetPitchBytes();
-	PitchStep = -PitchBytes;
+	PitchStep = -static_cast<tjs_int>(PitchBytes);
 
 	// set bitmap bits
 	try
@@ -436,7 +434,6 @@ tTVPBitmap::tTVPBitmap(const tTVPBitmap & r)
 #ifdef _WIN32
 	TVPInitWindowOptions(); // ensure window/bitmap usage options are initialized
 #endif
-	RefCount = 1;
 
 	// allocate bitmap which has the same metrics to r
 	Allocate(r.GetWidth(), r.GetHeight(), r.GetBPP());
@@ -467,7 +464,7 @@ void tTVPBitmap::Allocate(tjs_uint width, tjs_uint height, tjs_uint bpp, bool un
 	Width = width;
 	Height = height;
 	PitchBytes = BitmapInfo->GetPitchBytes();
-	PitchStep = -PitchBytes;
+	PitchStep = -static_cast<tjs_int>(PitchBytes);
 
 	// allocate bitmap bits
 	try
@@ -509,23 +506,24 @@ void tTVPBitmap::SetPaletteCount( tjs_uint count ) {
 }
 //---------------------------------------------------------------------------
 
+
 //---------------------------------------------------------------------------
 // tTVPNativeBaseBitmap
 //---------------------------------------------------------------------------
 tTVPNativeBaseBitmap::tTVPNativeBaseBitmap(tjs_uint w, tjs_uint h, tjs_uint bpp, bool unpadding)
+	: TextWidth(0), TextHeight(0), PrerenderedFont(nullptr)
 {
 	TVPInializeFontRasterizers();
 	// TVPFontRasterizer->AddRef(); TODO
-
 	Font = TVPFontSystem->GetDefaultFont();
-	PrerenderedFont = NULL;
 	FontChanged = true;
 	GlobalFontState = -1;
-	TextWidth = TextHeight = 0;
+
 	Bitmap = new tTVPBitmap(w, h, bpp, unpadding);
 }
 //---------------------------------------------------------------------------
 tTVPNativeBaseBitmap::tTVPNativeBaseBitmap(const tTVPNativeBaseBitmap & r)
+	: PrerenderedFont(nullptr), TextWidth(0), TextHeight(0)
 {
 	TVPInializeFontRasterizers();
 	// TVPFontRasterizer->AddRef(); TODO
@@ -534,9 +532,24 @@ tTVPNativeBaseBitmap::tTVPNativeBaseBitmap(const tTVPNativeBaseBitmap & r)
 	Bitmap->AddRef();
 
 	Font = r.Font;
-	PrerenderedFont = NULL;
 	FontChanged = true;
-	TextWidth = TextHeight = 0;
+}
+//---------------------------------------------------------------------------
+tTVPNativeBaseBitmap::tTVPNativeBaseBitmap(iTVPTextureInfoIntrface* texture)
+	: Bitmap(texture)
+{
+	TVPInializeFontRasterizers();
+	// TVPFontRasterizer->AddRef(); TODO
+
+	// texture は参照でもらって AddRef すべきか？
+	// AddRef するのが本来だが、フレームバッファへ文字を描きたいだけの場合など困るが、その辺り何とかうまくやろう
+	// フレームバッファは copy on write しない、Texture はするなど
+	Bitmap = texture;
+	texture->AddRef();
+
+	Font = TVPFontSystem->GetDefaultFont();
+	FontChanged = true;
+	GlobalFontState = -1;
 }
 //---------------------------------------------------------------------------
 tTVPNativeBaseBitmap::~tTVPNativeBaseBitmap()
@@ -572,42 +585,50 @@ void tTVPNativeBaseBitmap::SetSize(tjs_uint w, tjs_uint h, bool keepimage)
 	if(Bitmap->GetWidth() != w || Bitmap->GetHeight() != h)
 	{
 		// create a new bitmap and copy existing bitmap
-		tTVPBitmap *newbitmap = new tTVPBitmap(w, h, Bitmap->GetBPP());
+		if( Bitmap->IsMemoryBitmap() ) {
+			tTVPBitmap *newbitmap = new tTVPBitmap(w, h, Bitmap->GetBPP());
 
-		if(keepimage)
-		{
-			tjs_int pixelsize = Bitmap->Is32bit() ? 4 : 1;
-			tjs_int lh = h < Bitmap->GetHeight() ?
-				h : Bitmap->GetHeight();
-			tjs_int lw = w < Bitmap->GetWidth() ?
-				w : Bitmap->GetWidth();
-			tjs_int cs = lw * pixelsize;
-			tjs_int i;
-			for(i = 0; i < lh; i++)
+			if(keepimage)
 			{
-				void * ds = newbitmap->GetScanLine(i);
-				void * ss = Bitmap->GetScanLine(i);
+				tjs_int pixelsize = Bitmap->Is32bit() ? 4 : 1;
+				tjs_int lh = h < Bitmap->GetHeight() ?
+					h : Bitmap->GetHeight();
+				tjs_int lw = w < Bitmap->GetWidth() ?
+					w : Bitmap->GetWidth();
+				tjs_int cs = lw * pixelsize;
+				tjs_int i;
+				for(i = 0; i < lh; i++)
+				{
+					void * ds = newbitmap->GetScanLine(i);
+					void * ss = Bitmap->GetScanLine(i);
 
-				memcpy(ds, ss, cs);
+					memcpy(ds, ss, cs);
+				}
+				if( pixelsize == 1 )
+					memcpy(newbitmap->GetPalette(), Bitmap->GetPalette(), sizeof(tjs_uint)*tTVPBitmap::DEFAULT_PALETTE_COUNT);
 			}
-			if( pixelsize == 1 )
-				memcpy(newbitmap->GetPalette(), Bitmap->GetPalette(), sizeof(tjs_uint)*tTVPBitmap::DEFAULT_PALETTE_COUNT);
+
+			Bitmap->Release();
+			Bitmap = newbitmap;
+
+			FontChanged = true;
+		} else {
+			TVPThrowExceptionMessage(TJS_W("Textures cannot be resized."));
 		}
-
-		Bitmap->Release();
-		Bitmap = newbitmap;
-
-		FontChanged = true;
 	}
 }
 //---------------------------------------------------------------------------
 void tTVPNativeBaseBitmap::SetSizeAndImageBuffer( tjs_uint width, tjs_uint height, void* bits )
 {
-	// create a new bitmap and copy existing bitmap
-	tTVPBitmap *newbitmap = new tTVPBitmap(width, height, Bitmap->GetBPP(), bits );
-	Bitmap->Release();
-	Bitmap = newbitmap;
-	FontChanged = true;
+	if(Bitmap->IsMemoryBitmap() ) {
+		// create a new bitmap and copy existing bitmap
+		tTVPBitmap *newbitmap = new tTVPBitmap(width, height, Bitmap->GetBPP(), bits );
+		Bitmap->Release();
+		Bitmap = newbitmap;
+		FontChanged = true;
+	} else {
+		TVPThrowExceptionMessage(TJS_W("Textures cannot be resized."));
+	}
 }
 //---------------------------------------------------------------------------
 tjs_uint tTVPNativeBaseBitmap::GetBPP() const
@@ -668,16 +689,24 @@ void * tTVPNativeBaseBitmap::GetScanLineForWrite(tjs_uint l)
 //---------------------------------------------------------------------------
 tjs_int tTVPNativeBaseBitmap::GetPitchBytes() const
 {
-	return Bitmap->GetPitch();
+	return Bitmap->GetStride();
 }
 //---------------------------------------------------------------------------
 void tTVPNativeBaseBitmap::Independ()
 {
 	// sever Bitmap's image sharing
 	if(Bitmap->IsIndependent()) return;
-	tTVPBitmap *newb = new tTVPBitmap(*Bitmap);
-	Bitmap->Release();
-	Bitmap = newb;
+
+	if (Bitmap->IsMemoryBitmap()) {
+		tTVPBitmap* newb = new tTVPBitmap( reinterpret_cast<tTVPBitmap&>(*Bitmap) );
+		Bitmap->Release();
+		Bitmap = newb;
+	} else if (Bitmap->CanItRecreateTexture()) {
+		// TODO 暫定的措置
+		TVPThrowExceptionMessage(TJS_W("This operation is not possible with textures."));
+	} else {
+		TVPThrowExceptionMessage(TJS_W("This operation is not possible with textures."));
+	}
 	FontChanged = true; // informs internal font information is invalidated
 }
 //---------------------------------------------------------------------------
@@ -690,18 +719,30 @@ void tTVPNativeBaseBitmap::IndependNoCopy()
 //---------------------------------------------------------------------------
 void tTVPNativeBaseBitmap::Recreate()
 {
-	Recreate(Bitmap->GetWidth(), Bitmap->GetHeight(), Bitmap->GetBPP());
+	if( Bitmap->IsMemoryBitmap() )
+	{
+		Recreate(Bitmap->GetWidth(), Bitmap->GetHeight(), Bitmap->GetBPP());
+	}
+	else
+	{
+		TVPThrowExceptionMessage(TJS_W("This operation is not possible with textures."));
+		//RecreateTexture(Bitmap->GetWidth(), Bitmap->GetHeight(), Bitmap->GetImageFormat());
+	}
 }
 //---------------------------------------------------------------------------
 void tTVPNativeBaseBitmap::Recreate(tjs_uint w, tjs_uint h, tjs_uint bpp, bool unpadding)
 {
-	Bitmap->Release();
-	Bitmap = new tTVPBitmap(w, h, bpp, unpadding);
-	FontChanged = true; // informs internal font information is invalidated
+	if( Bitmap->IsMemoryBitmap() ) {
+		Bitmap->Release();
+		Bitmap = new tTVPBitmap(w, h, bpp, unpadding);
+		FontChanged = true; // informs internal font information is invalidated
+	} else
+		TVPThrowExceptionMessage(TJS_W("This operation is not possible with textures."));
 }
 //---------------------------------------------------------------------------
 tjs_uint tTVPNativeBaseBitmap::GetPalette( tjs_uint index ) const {
 	if( !Is8BPP() ) TVPThrowExceptionMessage(TVPInvalidOperationFor32BPP);
+	if( !Bitmap->IsMemoryBitmap() ) TVPThrowExceptionMessage(TJS_W("This operation is not possible with textures."));
 	if( index >= Bitmap->GetPaletteCount() )
 		TVPThrowExceptionMessage(TJSRangeError);
 
@@ -710,6 +751,7 @@ tjs_uint tTVPNativeBaseBitmap::GetPalette( tjs_uint index ) const {
 //---------------------------------------------------------------------------
 void tTVPNativeBaseBitmap::SetPalette( tjs_uint index, tjs_uint color ) {
 	if( !Is8BPP() ) TVPThrowExceptionMessage(TVPInvalidOperationFor32BPP);
+	if( !Bitmap->IsMemoryBitmap() ) TVPThrowExceptionMessage(TJS_W("This operation is not possible with textures."));
 	if( index >= Bitmap->GetPaletteCount() ) {
 		Bitmap->SetPaletteCount( index+1 );
 	}
@@ -835,7 +877,11 @@ bool tTVPNativeBaseBitmap::InternalDrawText(tTVPCharacterData *data, tjs_int x,
 
 	// blend to the bitmap
 	pitch = data->Pitch;
-	sl = (tjs_uint8*)GetScanLineForWrite(drect.top);
+	//sl = (tjs_uint8*)GetScanLineForWrite(drect.top);
+	// TODO テクスチャの場合この方法での書き込みは非効率的、矩形でロックしてもリニアにロックされるので高さと画像幅をかけたサイズ分ロックされる
+	// テクスチャは、連続したメモリとして扱って書き込み、別で矩形管理し、シェーダーで位置割り出しして、描画するのが現実的
+	sl = (tjs_uint8*)Bitmap->LockBits( tTVPBitmapLockType::READ_WRITE, &drect);
+	tTVPBitmapAutoLock lock(Bitmap);	// 書き込み完了後解放するためにロック
 	h = drect.bottom - drect.top;
 	w = drect.right - drect.left;
 	bp = data->GetData() + pitch * srect.top;

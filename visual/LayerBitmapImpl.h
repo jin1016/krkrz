@@ -15,86 +15,13 @@
 #include "ComplexRect.h"
 
 #include "BitmapInfomation.h"
+#include "TVPBitmap.h"
+#include "TextureInfo.h"
 
 //---------------------------------------------------------------------------
 extern void TVPSetFontCacheForLowMem();
 //---------------------------------------------------------------------------
 
-
-
-//---------------------------------------------------------------------------
-// tTVPBitmap : internal bitmap object
-//---------------------------------------------------------------------------
-class tTVPBitmap
-{
-public:
-	static const tjs_int DEFAULT_PALETTE_COUNT = 256;
-private:
-	tjs_int RefCount;
-
-	void * Bits; // pointer to bitmap bits
-	BitmapInfomation *BitmapInfo; // DIB information
-
-	tjs_int PitchBytes; // bytes required in a line
-	tjs_int PitchStep; // step bytes to next(below) line
-	tjs_int Width; // actual width
-	tjs_int Height; // actual height
-
-	tjs_int ActualPalCount;
-	tjs_uint* Palette;
-
-public:
-	tTVPBitmap(tjs_uint width, tjs_uint height, tjs_uint bpp, bool unpadding=false);
-	// for async load
-	// @param bits : tTVPBitmapBitsAlloc::Allocで確保したものを使用すること
-	tTVPBitmap(tjs_uint width, tjs_uint height, tjs_uint bpp, void* bits);
-
-	tTVPBitmap(const tTVPBitmap & r);
-
-	~tTVPBitmap();
-
-	void Allocate(tjs_uint width, tjs_uint height, tjs_uint bpp, bool unpadding=false);
-
-	void AddRef(void)
-	{
-		RefCount ++;
-	}
-
-	void Release(void)
-	{
-		if(RefCount == 1)
-			delete this;
-		else
-			RefCount--;
-	}
-
-	tjs_uint GetWidth() const { return Width; }
-	tjs_uint GetHeight() const { return Height; }
-
-	tjs_uint GetBPP() const { return BitmapInfo->GetBPP(); }
-	bool Is32bit() const { return BitmapInfo->Is32bit(); }
-	bool Is8bit() const { return BitmapInfo->Is8bit(); }
-
-
-	void * GetScanLine(tjs_uint l) const;
-
-	tjs_int GetPitch() const { return PitchStep; }
-
-	bool IsIndependent() const { return RefCount == 1; }
-
-	const BitmapInfomation* GetBitmapInfomation() const { return BitmapInfo; }
-#ifdef _WIN32
-	const BITMAPINFO * GetBITMAPINFO() const { return BitmapInfo->GetBITMAPINFO(); }
-	const BITMAPINFOHEADER * GetBITMAPINFOHEADER() const { return (const BITMAPINFOHEADER*)( BitmapInfo->GetBITMAPINFO() ); }
-#endif
-
-	const void * GetBits() const { return Bits; }
-	const tjs_uint* GetPalette() const { return Palette; };
-	tjs_uint* GetPalette() { return Palette; };
-	tjs_uint GetPaletteCount() const { return ActualPalCount; };
-	void SetPaletteCount( tjs_uint count );
-};
-//---------------------------------------------------------------------------
 
 
 
@@ -112,6 +39,7 @@ class tTVPNativeBaseBitmap
 public:
 	tTVPNativeBaseBitmap(tjs_uint w, tjs_uint h, tjs_uint bpp, bool unpadding=false);
 	tTVPNativeBaseBitmap(const tTVPNativeBaseBitmap & r);
+	tTVPNativeBaseBitmap(iTVPTextureInfoIntrface * texture);
 	virtual ~tTVPNativeBaseBitmap();
 
 	/* metrics */
@@ -150,7 +78,13 @@ public:
 	bool IsIndependent() const { return Bitmap->IsIndependent(); }
 
 	/* other utilities */
-	tTVPBitmap * GetBitmap() const { return Bitmap; }
+	tTVPBitmap* GetBitmap() const {
+		if (Bitmap->IsMemoryBitmap()) {
+			return reinterpret_cast<tTVPBitmap*>( const_cast<iTVPBitmap*>( Bitmap ) );
+		} else {
+			return nullptr;
+		}
+	}
 
 	tjs_uint GetPalette( tjs_uint index ) const;
 	void SetPalette( tjs_uint index, tjs_uint color );
@@ -247,7 +181,8 @@ public:
 
 protected:
 private:
-	tTVPBitmap *Bitmap;
+	iTVPBitmap	*Bitmap;
+
 public:
 	void operator =(const tTVPNativeBaseBitmap &rhs) { Assign(rhs); }
 };
