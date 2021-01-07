@@ -1,6 +1,8 @@
 
 #include "tjsCommHead.h"
 
+#include "OpenGLHeader.h"
+
 #include "CanvasIntf.h"
 #include "Matrix32Intf.h"
 #include "OffscreenIntf.h"
@@ -17,7 +19,6 @@
 #include "DebugIntf.h"
 #include "tvpgl.h"
 #include "CharacterSet.h"
-#include "GLShaderUtil.h"
 #include "ShaderProgramIntf.h"
 #include "VertexBinderIntf.h"
 #include "VertexBufferIntf.h"

@@ -1,8 +1,9 @@
 
 #include "tjsCommHead.h"
 
+#include "OpenGLHeader.h"
+
 #include "tjsArray.h"
-#include "TextureIntf.h"
 #include "BitmapIntf.h"
 #include "GraphicsLoaderIntf.h"
 #include "LayerBitmapIntf.h"
@@ -13,6 +14,9 @@
 #include "DebugIntf.h"
 #include <memory>
 #include <assert.h>
+
+
+#include "TextureIntf.h"
 
 bool TVPCopyBitmapToTexture( const iTVPTextureInfoIntrface* texture, tjs_int left, tjs_int top, const tTVPBaseBitmap* bitmap, const tTVPRect& srcRect );
 //----------------------------------------------------------------------
@@ -233,7 +237,8 @@ tjs_error TJS_INTF_METHOD tTJSNI_Texture::Construct(tjs_int numparams, tTJSVaria
 			color = (tTVPTextureColorFormat)(tjs_int)*param[2];
 		}
 		// 未初期化データでテクスチャを作る。後でコピーする前提。
-		Texture.create( width, height, nullptr, ColorToGLColor(( tTVPTextureColorFormat)color) );
+		//Texture->create( width, height, nullptr, ColorToGLColor(( tTVPTextureColorFormat)color) );
+		Texture.reset(new tTVPTexture(width, height, ColorToGLColor((tTVPTextureColorFormat)color)));
 		// 全体が使用される前提
 		SrcWidth = width;
 		SrcHeight = height;
@@ -244,7 +249,7 @@ tjs_error TJS_INTF_METHOD tTJSNI_Texture::Construct(tjs_int numparams, tTJSVaria
 }
 //----------------------------------------------------------------------
 void TJS_INTF_METHOD tTJSNI_Texture::Invalidate() {
-	Texture.destory();
+	Texture.release();
 
 	// release clip rect
 	if( MarginRectObject.Type() == tvtObject )
@@ -300,19 +305,19 @@ void tTJSNI_Texture::LoadTexture( const class tTVPBaseBitmap* bitmap, tTVPTextur
 					memcpy( &buffer[w*y], sl, pitch );
 				}
 			}
-			Texture.create( w, h, buffer.get(), ColorToGLColor( color ) );
+			Texture.reset( new tTVPTexture( w, h, ColorToGLColor(color), buffer.get() ) );
 		} else {
 			std::unique_ptr<tjs_uint8[]> buffer( new tjs_uint8[w*h] );
 			for( tjs_int y = 0; y < h; y++ ) {
 				tjs_uint8* sl = (tjs_uint8*)bitmap->GetScanLine( h-y-1 );
 				memcpy( &buffer[w*y], sl, pitch );
 			}
-			Texture.create( w, h, buffer.get(), ColorToGLColor( color ) );
+			Texture.reset(new tTVPTexture(w, h, ColorToGLColor(color), buffer.get()));
 		}
 	} else {
 		// 上下反転のままコピーする
 		//Texture.create( bitmap->GetWidth(), bitmap->GetHeight(), bitmap->GetScanLine( 0 ), ColorToGLColor( color ) );
-		Texture.create( bitmap->GetWidth(), bitmap->GetHeight(), bitmap->GetScanLine( bitmap->GetHeight() - 1 ), ColorToGLColor( color ) );
+		Texture.reset( new tTVPTexture( bitmap->GetWidth(), bitmap->GetHeight(), ColorToGLColor(color), bitmap->GetScanLine( bitmap->GetHeight() - 1 ) ) );
 	}
 }
 //----------------------------------------------------------------------
@@ -376,7 +381,7 @@ tjs_error tTJSNI_Texture::LoadMipmapTexture( const tTVPBaseBitmap* bitmap, class
 		prew = sw;
 		preh = sh;
 	}
-	Texture.createMipmapTexture( mipmap );
+	Texture->createMipmapTexture( mipmap );
 	return TJS_S_OK;
 }
 //----------------------------------------------------------------------
@@ -387,73 +392,6 @@ void tTJSNI_Texture::CopyBitmap( tjs_int left, tjs_int top, const tTVPBaseBitmap
 void  tTJSNI_Texture::CopyBitmap( const class tTVPBaseBitmap* bitmap ) {
 	tTVPRect rect( 0, 0, bitmap->GetWidth(), bitmap->GetHeight() );
 	TVPCopyBitmapToTexture( this, 0, 0, bitmap, rect );
-}
-//----------------------------------------------------------------------
-bool tTJSNI_Texture::IsGray() const {
-	return Texture.format() == GL_ALPHA;
-}
-//----------------------------------------------------------------------
-bool tTJSNI_Texture::IsPowerOfTwo() const {
-	return IsPowerOfTwo( Texture.width() ) && IsPowerOfTwo( Texture.height() );
-}
-//----------------------------------------------------------------------
-tjs_int64 tTJSNI_Texture::GetVBOHandle() const {
-	if( VertexBuffer.isCreated() ) {
-		return VertexBuffer.id();
-	} else {
-		const float w = (float)Texture.width();
-		const float h = (float)Texture.height();
-		const GLfloat vertices[] = {
-			0.0f, 0.0f,	// 左上
-			0.0f,    h,	// 左下
-			   w, 0.0f,	// 右上
-			   w,    h,	// 右下
-		};
-		GLVertexBufferObject& vbo = const_cast<GLVertexBufferObject&>( VertexBuffer );
-		vbo.createStaticVertex( vertices, sizeof(vertices) );
-		return VertexBuffer.id();
-	}
-}
-//----------------------------------------------------------------------
-void tTJSNI_Texture::SetDrawSize( tjs_uint width, tjs_uint height ) {
-	const float w = (float)width;
-	const float h = (float)height;
-	const GLfloat vertices[] = {
-		0.0f, 0.0f,	// 左上
-		0.0f,    h,	// 左下
-		   w, 0.0f,	// 右上
-		   w,    h,	// 右下
-	};
-	GLVertexBufferObject& vbo = const_cast<GLVertexBufferObject&>( VertexBuffer );
-	if( VertexBuffer.isCreated() ) {
-		vbo.copyBuffer( 0, sizeof( vertices ), vertices );
-	} else {
-		vbo.createStaticVertex( vertices, sizeof( vertices ) );
-	}
-}
-//----------------------------------------------------------------------
-tjs_int tTJSNI_Texture::GetStretchType() const {
-	return static_cast<tjs_int>(Texture.stretchType());
-}
-//----------------------------------------------------------------------
-void tTJSNI_Texture::SetStretchType( tjs_int v ) {
-	Texture.setStretchType( static_cast<GLenum>(v) );
-}
-//----------------------------------------------------------------------
-tjs_int tTJSNI_Texture::GetWrapModeHorizontal() const {
-	return static_cast<tjs_int>(Texture.wrapS());
-}
-//----------------------------------------------------------------------
-void tTJSNI_Texture::SetWrapModeHorizontal( tjs_int v ) {
-	Texture.setWrapS( static_cast<GLenum>(v) );
-}
-//----------------------------------------------------------------------
-tjs_int tTJSNI_Texture::GetWrapModeVertical() const {
-	return static_cast<tjs_int>(Texture.wrapT());
-}
-//----------------------------------------------------------------------
-void tTJSNI_Texture::SetWrapModeVertical( tjs_int v ) {
-	Texture.setWrapT( static_cast<GLenum>(v) );
 }
 //----------------------------------------------------------------------
 

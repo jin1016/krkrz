@@ -6,13 +6,26 @@
 
 
 class GLVertexBufferObject {
-	GLuint vbo_id_;
-	GLenum target_;
-	GLenum usage_;
-	tjs_int size_;
+	GLuint vbo_id_ = 0;
+	GLenum target_ = 0;
+	GLenum usage_ = GL_STATIC_DRAW;
+	tjs_int size_ = 0;
 
 public:
-	GLVertexBufferObject() : vbo_id_(0), target_(0), usage_(GL_STATIC_DRAW) {}
+	GLVertexBufferObject() {}
+
+	// コピーは不許可、ムーブは許可
+	GLVertexBufferObject( const GLVertexBufferObject& ref ) = delete;
+	GLVertexBufferObject( GLVertexBufferObject&& ref ) noexcept { *this = std::move( ref ); }
+
+	// コピーは不許可、ムーブは許可
+	GLVertexBufferObject& operator=(GLVertexBufferObject&& rhs) noexcept {
+		vbo_id_ = rhs.vbo_id_;
+		target_ = rhs.target_;
+		usage_ = rhs.usage_;
+		size_ = rhs.size_;
+	}
+	GLVertexBufferObject& operator=(const GLVertexBufferObject& rhs) = delete;
 
 	~GLVertexBufferObject() {
 		destory();

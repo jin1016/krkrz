@@ -1,7 +1,10 @@
 
 #include "tjsCommHead.h"
 
-#include "OffscreenIntf.h"
+#include "OpenGLHeader.h"
+
+#include "tjsNative.h"
+
 #include "MsgIntf.h"	// TVPThrowExceptionMessage
 #include "BitmapIntf.h"
 #include "LayerBitmapIntf.h"
@@ -10,6 +13,9 @@
 #include "RectItf.h"
 #include "TextureIntf.h"
 #include <memory>
+
+#include "TVPOffscreen.h"
+#include "OffscreenIntf.h"
 
 extern bool TVPCopyBitmapToTexture( const iTVPTextureInfoIntrface* texture, tjs_int left, tjs_int top, const tTVPBaseBitmap* bitmap, const tTVPRect& srcRect );
 //---------------------------------------------------------------------------
@@ -23,7 +29,7 @@ tjs_error TJS_INTF_METHOD tTJSNI_Offscreen::Construct(tjs_int numparams, tTJSVar
 	if( numparams < 2 ) return TJS_E_BADPARAMCOUNT;
 	tjs_int width = *param[0];
 	tjs_int height = *param[1];
-	bool result = FrameBuffer.create( width, height );
+	bool result = Offscreen.Create( width, height );
 	if( result == false ) {
 		TVPThrowExceptionMessage( TJS_W("FBO create error.") );
 	}
@@ -31,65 +37,7 @@ tjs_error TJS_INTF_METHOD tTJSNI_Offscreen::Construct(tjs_int numparams, tTJSVar
 }
 //---------------------------------------------------------------------------
 void TJS_INTF_METHOD tTJSNI_Offscreen::Invalidate() {
-	FrameBuffer.destory();
-}
-//---------------------------------------------------------------------------
-void tTJSNI_Offscreen::CopyFromBitmap( tjs_int left, tjs_int top, const tTVPBaseBitmap* bmp, const tTVPRect& srcRect ) {
-	TVPCopyBitmapToTexture( this, left, top, bmp, srcRect );
-}
-//---------------------------------------------------------------------------
-void tTJSNI_Offscreen::CopyToBitmap( tTVPBaseBitmap* bmp, const tTVPRect& srcRect, tjs_int dleft, tjs_int dtop ) {
-	if( !bmp ) return;
-	if( bmp->Is8BPP() ) {
-		TVPAddLog(TJS_W("unsupported format"));
-		return;
-	}
-	FrameBuffer.readTextureToBitmap( bmp, srcRect, dleft, dtop );
-}
-//---------------------------------------------------------------------------
-void tTJSNI_Offscreen::CopyToBitmap( tTVPBaseBitmap* bmp ) {
-	if( !bmp ) return;
-	if( bmp->Is8BPP() ) {
-		TVPAddLog(TJS_W("unsupported format"));
-		return;
-	}
-	FrameBuffer.readTextureToBitmap( bmp );
-}
-//---------------------------------------------------------------------------
-tjs_int64 tTJSNI_Offscreen::GetVBOHandle() const {
-	if( VertexBuffer.isCreated() ) {
-		return VertexBuffer.id();
-	} else {
-		const float w = (float)FrameBuffer.width();
-		const float h = (float)FrameBuffer.height();
-		const GLfloat vertices[] = {
-			0.0f, 0.0f,	// 左上
-			0.0f,    h,	// 左下
-			   w, 0.0f,	// 右上
-			   w,    h,	// 右下
-		};
-		GLVertexBufferObject& vbo = const_cast<GLVertexBufferObject&>( VertexBuffer );
-		vbo.createStaticVertex( vertices, sizeof(vertices) );
-		return VertexBuffer.id();
-	}
-}
-//---------------------------------------------------------------------------
-void tTJSNI_Offscreen::ExchangeTexture( tTJSNI_Texture* texture ) {
-	if( FrameBuffer.width() == texture->GetMemoryWidth() && FrameBuffer.height() == texture->GetMemoryHeight() && FrameBuffer.format() == texture->GetImageFormat() ) {
-		GLuint oldTex = FrameBuffer.textureId();
-		bool result = FrameBuffer.exchangeTexture( (GLuint)texture->GetNativeHandle() );
-		if( !result ) {
-			TVPThrowExceptionMessage( TJS_W( "Cannot exchange texture." ) );
-		} else {
-			texture->Texture.texture_id_ = oldTex;
-		}
-	} else {
-		TVPThrowExceptionMessage( TJS_W( "Incompatible texture." ) );
-	}
-}
-//---------------------------------------------------------------------------
-void tTJSNI_Offscreen::BindFrameBuffer() {
-	FrameBuffer.bindFramebuffer();
+	Offscreen.Destory();
 }
 //---------------------------------------------------------------------------
 // tTJSNC_Offscreen : TJS Offscreen class
