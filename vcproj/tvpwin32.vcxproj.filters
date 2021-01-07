@@ -749,6 +749,21 @@
     <ClInclude Include="..\movie\win32\AsyncCB.h">
       <Filter>movie\win32</Filter>
     </ClInclude>
+    <ClInclude Include="..\visual\opengl\GLPixelBufferObject.h">
+      <Filter>visual\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\visual\opengl\TVPTexture.h">
+      <Filter>visual\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\visual\opengl\TVPTextureBridgeMemory.h">
+      <Filter>visual\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\visual\TVPBitmap.h">
+      <Filter>visual</Filter>
+    </ClInclude>
+    <ClInclude Include="..\visual\opengl\TVPOffscreen.h">
+      <Filter>visual\opengl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\tjs2\tjs.cpp">
@@ -1383,6 +1398,24 @@
     </ClCompile>
     <ClCompile Include="..\movie\win32\MFByteStream.cpp">
       <Filter>movie\win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\visual\opengl\GLPixelBufferObject.cpp">
+      <Filter>visual\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\visual\opengl\TVPTextureBridgeMemory.cpp">
+      <Filter>visual\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\visual\opengl\TVPTexture.cpp">
+      <Filter>visual\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\visual\opengl\GLTexture.cpp">
+      <Filter>visual\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\visual\opengl\TextureInfo.cpp">
+      <Filter>visual\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\visual\opengl\TVPOffscreen.cpp">
+      <Filter>visual\opengl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

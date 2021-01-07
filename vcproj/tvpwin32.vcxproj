@@ -527,6 +527,7 @@
     <ClInclude Include="..\visual\opengl\CanvasIntf.h" />
     <ClInclude Include="..\visual\opengl\DrawCycleTimer.h" />
     <ClInclude Include="..\visual\opengl\GLFrameBufferObject.h" />
+    <ClInclude Include="..\visual\opengl\GLPixelBufferObject.h" />
     <ClInclude Include="..\visual\opengl\GLShaderUtil.h" />
     <ClInclude Include="..\visual\opengl\GLTexture.h" />
     <ClInclude Include="..\visual\opengl\GLVertexBufferObject.h" />
@@ -538,6 +539,9 @@
     <ClInclude Include="..\visual\opengl\OpenGLScreen.h" />
     <ClInclude Include="..\visual\opengl\ShaderProgramIntf.h" />
     <ClInclude Include="..\visual\opengl\TextureIntf.h" />
+    <ClInclude Include="..\visual\opengl\TVPOffscreen.h" />
+    <ClInclude Include="..\visual\opengl\TVPTexture.h" />
+    <ClInclude Include="..\visual\opengl\TVPTextureBridgeMemory.h" />
     <ClInclude Include="..\visual\opengl\VertexBinderIntf.h" />
     <ClInclude Include="..\visual\opengl\VertexBufferIntf.h" />
     <ClInclude Include="..\visual\PrerenderedFont.h" />
@@ -545,6 +549,7 @@
     <ClInclude Include="..\visual\SaveTLG.h" />
     <ClInclude Include="..\visual\transhandler.h" />
     <ClInclude Include="..\visual\TransIntf.h" />
+    <ClInclude Include="..\visual\TVPBitmap.h" />
     <ClInclude Include="..\visual\TVPColor.h" />
     <ClInclude Include="..\visual\tvpfontstruc.h" />
     <ClInclude Include="..\visual\tvpgl.h" />
@@ -771,14 +776,20 @@
     <ClCompile Include="..\visual\opengl\CanvasIntf.cpp" />
     <ClCompile Include="..\visual\opengl\DrawCycleTimer.cpp" />
     <ClCompile Include="..\visual\opengl\GLFrameBufferObject.cpp" />
+    <ClCompile Include="..\visual\opengl\GLPixelBufferObject.cpp" />
     <ClCompile Include="..\visual\opengl\GLShaderUtil.cpp" />
+    <ClCompile Include="..\visual\opengl\GLTexture.cpp" />
     <ClCompile Include="..\visual\opengl\Matrix32Intf.cpp" />
     <ClCompile Include="..\visual\opengl\Matrix44Intf.cpp" />
     <ClCompile Include="..\visual\opengl\OffscreenIntf.cpp" />
     <ClCompile Include="..\visual\opengl\OpenGLPlatformWin32.cpp" />
     <ClCompile Include="..\visual\opengl\OpenGLScreen.cpp" />
     <ClCompile Include="..\visual\opengl\ShaderProgramIntf.cpp" />
+    <ClCompile Include="..\visual\opengl\TextureInfo.cpp" />
     <ClCompile Include="..\visual\opengl\TextureIntf.cpp" />
+    <ClCompile Include="..\visual\opengl\TVPOffscreen.cpp" />
+    <ClCompile Include="..\visual\opengl\TVPTexture.cpp" />
+    <ClCompile Include="..\visual\opengl\TVPTextureBridgeMemory.cpp" />
     <ClCompile Include="..\visual\opengl\VertexBinderIntf.cpp" />
     <ClCompile Include="..\visual\opengl\VertexBufferIntf.cpp" />
     <ClCompile Include="..\visual\PrerenderedFont.cpp" />

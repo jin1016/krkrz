@@ -50,6 +50,8 @@
 #include "BitmapLayerTreeOwner.h"
 #include "Extension.h"
 
+#include "OpenGLHeader.h"
+
 #include "CanvasIntf.h"
 #include "OffscreenIntf.h"
 #include "TextureIntf.h"
