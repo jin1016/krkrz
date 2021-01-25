@@ -33,22 +33,7 @@ bool GLFrameBufferObject::create( GLuint w, GLuint h ) {
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr );
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_id_, 0 );
 
-	GLenum status = glCheckFramebufferStatus( GL_FRAMEBUFFER );
-	switch( status ) {
-	case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-		TVPAddLog( TJS_W("Not all framebuffer attachment points are framebuffer attachment complete.") );
-		break;
-	case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-		TVPAddLog( TJS_W("Not all attached images have the same width and height.") );
-		break;
-	case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-		TVPAddLog( TJS_W("No images are attached to the framebuffer.") );
-		break;
-	case GL_FRAMEBUFFER_UNSUPPORTED:
-		TVPAddLog( TJS_W("The combination of internal formats of the attached images violates an implementation-dependent set of restrictions. ") );
-		break;
-	}
-	bool result = status == GL_FRAMEBUFFER_COMPLETE;
+	bool result = checkFramebufferStatus();
 	if( result == false ) {
 		destory();
 	} else {
@@ -64,23 +49,7 @@ bool GLFrameBufferObject::exchangeTexture( GLuint tex_id ) {
 
 	glBindFramebuffer( GL_FRAMEBUFFER, framebuffer_id_ );
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_id, 0 );
-
-	GLenum status = glCheckFramebufferStatus( GL_FRAMEBUFFER );
-	switch( status ) {
-	case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-		TVPAddLog( TJS_W("Not all framebuffer attachment points are framebuffer attachment complete.") );
-		break;
-	case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-		TVPAddLog( TJS_W("Not all attached images have the same width and height.") );
-		break;
-	case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-		TVPAddLog( TJS_W("No images are attached to the framebuffer.") );
-		break;
-	case GL_FRAMEBUFFER_UNSUPPORTED:
-		TVPAddLog( TJS_W("The combination of internal formats of the attached images violates an implementation-dependent set of restrictions. ") );
-		break;
-	}
-	bool result = status == GL_FRAMEBUFFER_COMPLETE;
+	bool result = checkFramebufferStatus();
 	if( result ) {
 		texture_id_ = tex_id;
 	}
@@ -88,6 +57,24 @@ bool GLFrameBufferObject::exchangeTexture( GLuint tex_id ) {
 	glBindFramebuffer( GL_FRAMEBUFFER, fb );
 
 	return result;
+}
+bool GLFrameBufferObject::checkFramebufferStatus() {
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	switch( status ) {
+	case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+		TVPAddLog(TJS_W("Not all framebuffer attachment points are framebuffer attachment complete."));
+		break;
+	case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+		TVPAddLog(TJS_W("Not all attached images have the same width and height."));
+		break;
+	case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+		TVPAddLog(TJS_W("No images are attached to the framebuffer."));
+		break;
+	case GL_FRAMEBUFFER_UNSUPPORTED:
+		TVPAddLog(TJS_W("The combination of internal formats of the attached images violates an implementation-dependent set of restrictions. "));
+		break;
+	}
+	return status == GL_FRAMEBUFFER_COMPLETE;
 }
 bool GLFrameBufferObject::readFrameBuffer( tjs_uint x, tjs_uint y, tjs_uint width, tjs_uint height, tjs_uint8* dest, bool front ) {
 	glReadBuffer( front ? GL_FRONT : GL_BACK );
@@ -202,6 +189,8 @@ void GLFrameBufferObject::bindFramebuffer() {
 		glViewport( 0, 0, width_, height_ );
 	}
 }
+// フレームバッファから Texture への画像のコピーは glCopyTexImage2D を使うと良いっぽい
+
 // OpenGL ES 3.0 以降用
 /* glGetTextureImage がないと PBO でも解決できない問題であった……
 void GLFrameBufferObject::readTextureUsePBO( GLubyte* pixels ) {

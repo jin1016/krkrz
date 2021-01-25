@@ -52,6 +52,7 @@ public:
 
 	bool readTextureToBitmap( class tTVPBaseBitmap* bmp );
 	bool readTextureToBitmap( class tTVPBaseBitmap* bmp, const tTVPRect& srcRect, tjs_int dleft, tjs_int dtop );
+	static bool checkFramebufferStatus();
 };
 
 
