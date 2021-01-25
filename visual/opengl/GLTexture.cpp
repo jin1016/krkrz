@@ -22,8 +22,11 @@ GLTexture::GLTexture( const TVPTextureBridgeMemory& src, GLint format )
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS_ );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT_ );
 
-	//glTexImage2D( GL_TEXTURE_2D, 0, format, width_, height_, 0, format, GL_UNSIGNED_BYTE, bits );
-	createFromBridgeMemory( src, format);
+	if (src.HasImage()) {
+		createFromBridgeMemory(src, format);
+	} else {
+		glTexImage2D( GL_TEXTURE_2D, 0, format, width_, height_, 0, format, GL_UNSIGNED_BYTE, nullptr );
+	}
 
 	glBindTexture( GL_TEXTURE_2D, 0 );
 }
