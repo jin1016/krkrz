@@ -17,7 +17,6 @@
 #include "TVPOffscreen.h"
 #include "OffscreenIntf.h"
 
-extern bool TVPCopyBitmapToTexture( const iTVPTextureInfoIntrface* texture, tjs_int left, tjs_int top, const tTVPBaseBitmap* bitmap, const tTVPRect& srcRect );
 //---------------------------------------------------------------------------
 tTJSNI_Offscreen::tTJSNI_Offscreen() {
 }
