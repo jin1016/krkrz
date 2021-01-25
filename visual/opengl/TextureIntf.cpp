@@ -734,7 +734,7 @@ bool TVPCopyBitmapToTexture( const iTVPTextureInfoIntrface* texture, tjs_int lef
 	if( texture->GetImageFormat() == GL_RGBA && bitmap->Is32BPP() ) {
 		std::unique_ptr<tjs_uint32[]> buffer(new tjs_uint32[clip.get_width()*clip.get_height()]);
 		for( tjs_int y = clip.bottom-1, line = 0; y >= clip.top; y--, line++ ) {
-			tjs_uint32* sl = ((tjs_uint32*)bitmap->GetScanLine(y)) + clip.left;
+			const tjs_uint32* sl = static_cast<const tjs_uint32*>(bitmap->GetScanLine(y)) + clip.left;
 			TVPRedBlueSwapCopy( &buffer[clip.get_width()*line], sl, clip.get_width() );
 		}
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
@@ -743,7 +743,7 @@ bool TVPCopyBitmapToTexture( const iTVPTextureInfoIntrface* texture, tjs_int lef
 	} else if( texture->GetImageFormat() == GL_ALPHA && bitmap->Is8BPP() ) {
 		std::unique_ptr<tjs_uint8[]> buffer(new tjs_uint8[clip.get_width()*clip.get_height()]);
 		for( tjs_int y = clip.bottom-1, line = 0; y >= clip.top; y--, line++ ) {
-			tjs_uint8* sl = ((tjs_uint8*)bitmap->GetScanLine(y)) + clip.left;
+			const tjs_uint8* sl = static_cast<const tjs_uint8*>(bitmap->GetScanLine(y)) + clip.left;
 			memcpy( &buffer[clip.get_width()*line], sl, clip.get_width() );
 		}
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
