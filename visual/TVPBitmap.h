@@ -180,14 +180,6 @@ public:
 	bool Is32bit() const { return BitmapInfo->Is32bit(); }
 	bool Is8bit() const { return BitmapInfo->Is8bit(); }
 
-	/*
-	void * GetScanLine(tjs_uint l) const {
-		if((tjs_int)l>=GetHeight() ) {
-			TVPThrowExceptionMessage(TVPScanLineRangeOver, ttstr((tjs_int)l), ttstr((tjs_int)GetHeight()-1));
-		}
-		return (GetHeight() - l -1 ) * PitchBytes + (tjs_uint8*)LockBits();
-	}
-	*/
 	// 次の行までのストライド(負数の可能性あり)
 	tjs_int GetStride() const { return PitchStep; }
 
@@ -206,16 +198,7 @@ public:
 	void* LockBits(tTVPBitmapLockType type, tjs_offset offset, tjs_size length) {
 		return static_cast<tjs_uint8*>(Bits) + offset;
 	}
-	void* LockBits( tTVPBitmapLockType type = tTVPBitmapLockType::WRITE_ONLY, tTVPRect* area = nullptr ) {
-		if (area) {
-			// 範囲指定時、その範囲のアドレスを返す
-			tjs_uint8* line = static_cast<tjs_uint8*>( Bits );
-			line += GetStride() * area->top;
-			line += ( GetBPP() / 32 ) * area->left;
-			return line;
-		}
-		return Bits;
-	}
+	void* LockBits(tTVPBitmapLockType type = tTVPBitmapLockType::WRITE_ONLY, tTVPRect* area = nullptr);
 	void* GetScanLine(tjs_uint l) const;
 	// unlock は必要ない
 	void UnlockBits() {}

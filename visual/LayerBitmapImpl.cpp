@@ -486,6 +486,22 @@ void tTVPBitmap::Allocate(tjs_uint width, tjs_uint height, tjs_uint bpp, bool un
 	}
 }
 //---------------------------------------------------------------------------
+void* tTVPBitmap::LockBits(tTVPBitmapLockType type, tTVPRect* area)
+{
+	if( area ) {
+		// 範囲指定時、その範囲のアドレスを返す
+		/*
+		tjs_uint8* line = static_cast<tjs_uint8*>( Bits );
+		line += GetStride() * area->top;
+		line += ( GetBPP() / 8 ) * area->left;
+		*/
+		tjs_int offset = ( GetHeight() - area->top - 1 ) * GetLineBytes();
+		tjs_uint8* bits = static_cast<tjs_uint8*>( Bits ) + offset + ( GetBPP() / 8 ) * area->left;
+		return bits;
+	}
+	return Bits;
+}
+//---------------------------------------------------------------------------
 void * tTVPBitmap::GetScanLine(tjs_uint l) const
 {
 	if((tjs_int)l>=BitmapInfo->GetHeight() )
@@ -880,7 +896,13 @@ bool tTVPNativeBaseBitmap::InternalDrawText(tTVPCharacterData *data, tjs_int x,
 	//sl = (tjs_uint8*)GetScanLineForWrite(drect.top);
 	// TODO テクスチャの場合この方法での書き込みは非効率的、矩形でロックしてもリニアにロックされるので高さと画像幅をかけたサイズ分ロックされる
 	// テクスチャは、連続したメモリとして扱って書き込み、別で矩形管理し、シェーダーで位置割り出しして、描画するのが現実的
-	sl = (tjs_uint8*)Bitmap->LockBits( tTVPBitmapLockType::READ_WRITE, &drect);
+	//sl = (tjs_uint8*)Bitmap->LockBits( tTVPBitmapLockType::READ_WRITE, &drect);
+
+	// 暫定的に左端を0にする(後の処理でdrect.leftが常に加算されるため
+	tTVPRect lockRect(drect);
+	lockRect.left = 0;
+	sl = (tjs_uint8*)Bitmap->LockBits(tTVPBitmapLockType::READ_WRITE, &lockRect);
+
 	tTVPBitmapAutoLock lock(Bitmap);	// 書き込み完了後解放するためにロック
 	h = drect.bottom - drect.top;
 	w = drect.right - drect.left;
