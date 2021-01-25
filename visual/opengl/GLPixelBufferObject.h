@@ -52,6 +52,7 @@ class GLPixelBufferObject {
 	tjs_int width_;
 	tjs_int height_;
 	tjs_int bpp_;
+	bool copied_;	// PBO にデータコピーされたかどうか
 
 public:
 	/**
@@ -64,14 +65,16 @@ public:
 
 	// コピーは不許可、ムーブは許可
 	GLPixelBufferObject( const GLPixelBufferObject& ref ) = delete;
-	GLPixelBufferObject( GLPixelBufferObject&& ref );
+	GLPixelBufferObject( GLPixelBufferObject&& ref ) noexcept;
 
 	~GLPixelBufferObject();
 
 	// コピーは不許可、ムーブは許可
-	GLPixelBufferObject& operator=(GLPixelBufferObject&& rhs);
+	GLPixelBufferObject& operator=(GLPixelBufferObject&& rhs) noexcept;
 	GLPixelBufferObject& operator=(const GLPixelBufferObject& rhs) = delete;
 
+	// PBO にデータ転送済みかどうか
+	bool HasImage() const { return copied_;  }
 	/**
 	 * @return PBO ID
 	 */

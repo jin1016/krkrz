@@ -18,15 +18,28 @@
  * @param src 初期読み込み画像データ、null の時は未初期化
  */
 GLPixelBufferObject::GLPixelBufferObject( tjs_int w, tjs_int h, tjs_int bpp, const void* src )
-: pbo_(0), width_(w), height_(h), bpp_(bpp) {
+: pbo_(0), width_(w), height_(h), bpp_(bpp), copied_(false) {
 	glGenBuffers( 1, &pbo_ );
-	glBindBuffer( GL_PIXEL_PACK_BUFFER, pbo_ );
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_ );
 
 	// バッファの作成と初期化, srcが非nullならデータコピー
-	glBufferData( GL_PIXEL_PACK_BUFFER, width_*height_*bpp_, src, GL_DYNAMIC_DRAW );
-	glBindBuffer( GL_PIXEL_PACK_BUFFER, 0 );
+	GLsizeiptr length = w * h * bpp;
+	glBufferData(GL_PIXEL_UNPACK_BUFFER, length, 0, GL_DYNAMIC_DRAW );
+	if( src ) {
+		unsigned char* ptr = static_cast<unsigned char*>( glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, length, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT) );
+		if( ptr ) {
+			memcpy(ptr, src, length);
+			glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+			copied_ = true;
+		} else {
+			tTVPOpenGLScreen::CheckGLErrorAndLog( TJS_W("GLPixelBufferObject::GLPixelBufferObject") );
+		}
+	} else {
+		copied_ = false;
+	}
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0 );
 }
-GLPixelBufferObject::GLPixelBufferObject( GLPixelBufferObject&& ref ) {
+GLPixelBufferObject::GLPixelBufferObject( GLPixelBufferObject&& ref ) noexcept {
 	*this = std::move( ref );
 }
 
@@ -39,11 +52,12 @@ GLPixelBufferObject::~GLPixelBufferObject() {
 	pbo_ = 0;
 }
 
-GLPixelBufferObject& GLPixelBufferObject::operator=(GLPixelBufferObject&& rhs) {
+GLPixelBufferObject& GLPixelBufferObject::operator=(GLPixelBufferObject&& rhs) noexcept {
 	pbo_ = rhs.pbo_;
 	width_ = rhs.width_;
 	height_ = rhs.height_;
 	bpp_ = rhs.bpp_;
+	copied_ = rhs.copied_;
 	return *this;
 }
 
@@ -63,6 +77,7 @@ void GLPixelBufferObject::CopyFromMemory( const void* src ) {
 	if( ptr ) {
 		memcpy( ptr, src, length );
 		glUnmapBuffer( target );
+		copied_ = true;
 	}
 	glBindBuffer( target, 0 );
 }
@@ -88,6 +103,7 @@ void* GLPixelBufferObject::LockBuffer( GLbitfield type, GLintptr offset, GLsizei
 void GLPixelBufferObject::UnlockBuffer() {
 	glUnmapBuffer( GL_PIXEL_UNPACK_BUFFER );
 	glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0 );
+	copied_ = true;
 }
 
 
@@ -96,13 +112,16 @@ void GLPixelBufferObject::UnlockBuffer() {
  */
 void GLPixelBufferObject::CopyToTexture( GLuint tex )
 {
-	// PBOからテクスチャへ転送
-	glBindBuffer( GL_PIXEL_UNPACK_BUFFER, pbo_ );
-	glBindTexture( GL_TEXTURE_2D, tex );
-	glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, width_, height_, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
-	//glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, width_, height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
-	glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0 );
-	glBindTexture( GL_TEXTURE_2D, 0 );
+	if (copied_) {
+		// 既に PBO にデータが転送されている場合、テクスチャへデータ転送する
+		// PBOからテクスチャへ転送
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width_, height_, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		//glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, width_, height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
 }
 
 /**
@@ -110,12 +129,14 @@ void GLPixelBufferObject::CopyToTexture( GLuint tex )
  */
 void GLPixelBufferObject::CopyToTexture( GLuint tex, GLint format )
 {
-	// PBOからテクスチャへ転送
-	glBindBuffer( GL_PIXEL_UNPACK_BUFFER, pbo_ );
-	//glBindTexture( GL_TEXTURE_2D, tex );
-	glTexImage2D( GL_TEXTURE_2D, 0, 0, width_, height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
-	glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0 );
-	//glBindTexture( GL_TEXTURE_2D, 0 );
+	if( copied_ ) {
+		// PBOからテクスチャへ転送
+		glBindBuffer( GL_PIXEL_UNPACK_BUFFER, pbo_ );
+		glBindTexture( GL_TEXTURE_2D, tex );
+		glTexImage2D( GL_TEXTURE_2D, 0, format, width_, height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
+		glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0 );
+		glBindTexture( GL_TEXTURE_2D, 0 );
+	}
 }
 
 
@@ -132,6 +153,7 @@ bool GLPixelBufferObject::CopyFromFramebuffer( GLsizei width, GLsizei height, bo
 	// PBO にロード
 	glReadPixels( 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
 
+	copied_ = true;
 	return true;
 }
 
