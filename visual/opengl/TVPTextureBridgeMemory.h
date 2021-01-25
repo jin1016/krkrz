@@ -25,13 +25,15 @@ public:
 
 	// コピーは不許可、ムーブは許可
 	TVPTextureBridgeMemory( const TVPTextureBridgeMemory& ref ) = delete;
-	TVPTextureBridgeMemory( TVPTextureBridgeMemory&& ref );
+	TVPTextureBridgeMemory( TVPTextureBridgeMemory&& ref ) noexcept;
 
 	~TVPTextureBridgeMemory();
 
 	// コピーは不許可、ムーブは許可
-	TVPTextureBridgeMemory& operator=(TVPTextureBridgeMemory&& rhs);
+	TVPTextureBridgeMemory& operator=(TVPTextureBridgeMemory&& rhs) noexcept;
 	TVPTextureBridgeMemory& operator=(const TVPTextureBridgeMemory& rhs) = delete;
+
+	bool HasImage() const;
 
 	/**
 	 * @return width

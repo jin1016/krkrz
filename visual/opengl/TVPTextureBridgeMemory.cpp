@@ -34,11 +34,14 @@ TVPTextureBridgeMemory::TVPTextureBridgeMemory( tjs_int w, tjs_int h, tjs_int bp
 	} else {
 		//Bitmap = tTVPBitmap( w, h, bpp, bool unpadding=false);
 		Bitmap = new tTVPBitmap( w, h, bpp, true ); // padding なしで生成する
+		if( src ) {
+			CopyFromMemory( src );
+		}
 	}
 }
 
 // move constoractor
-TVPTextureBridgeMemory::TVPTextureBridgeMemory( TVPTextureBridgeMemory&& ref )
+TVPTextureBridgeMemory::TVPTextureBridgeMemory( TVPTextureBridgeMemory&& ref ) noexcept
 {
 	*this = std::move( ref );
 }
@@ -52,7 +55,7 @@ TVPTextureBridgeMemory::~TVPTextureBridgeMemory()
 }
 
 // move 
-TVPTextureBridgeMemory& TVPTextureBridgeMemory::operator=(TVPTextureBridgeMemory&& rhs)
+TVPTextureBridgeMemory& TVPTextureBridgeMemory::operator=(TVPTextureBridgeMemory&& rhs) noexcept
 {
 	if( rhs.PixelBuffer ) {
 		PixelBuffer.reset( rhs.PixelBuffer.release() );
@@ -68,6 +71,13 @@ TVPTextureBridgeMemory& TVPTextureBridgeMemory::operator=(TVPTextureBridgeMemory
 	return *this;
 }
 
+bool TVPTextureBridgeMemory::HasImage() const {
+	if (PixelBuffer) {
+		return PixelBuffer->HasImage();
+	} else {
+		return true;
+	}
+}
 /**
  * @return width
  */
@@ -251,7 +261,7 @@ void TVPTextureBridgeMemory::CopyToTexture( GLuint tex )
 void TVPTextureBridgeMemory::CopyToTexture( GLuint tex, GLint format )
 {
 	if( PixelBuffer ) {
-		PixelBuffer->CopyToTexture( tex );
+		PixelBuffer->CopyToTexture( tex, format);
 	} else {
 		glBindTexture( GL_TEXTURE_2D, tex );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, Bitmap->Is32bit() ? 4 : 1 );
