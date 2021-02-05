@@ -157,3 +157,28 @@ bool GLPixelBufferObject::CopyFromFramebuffer( GLsizei width, GLsizei height, bo
 	return true;
 }
 
+
+/**
+ * PBO からデータをコピーする
+ */
+void GLPixelBufferObject::CopyFrom( const GLPixelBufferObject& pbo )
+{
+	GLint size;
+	glBindBuffer( GL_PIXEL_PACK_BUFFER, pbo.pbo_ );
+	glGetBufferParameteriv( GL_PIXEL_PACK_BUFFER, GL_BUFFER_SIZE, &size );
+
+	glBindBuffer( GL_PIXEL_UNPACK_BUFFER, pbo_ );
+	glBufferData( GL_PIXEL_UNPACK_BUFFER, size, nullptr, GL_DYNAMIC_DRAW );
+
+	glCopyBufferSubData( GL_PIXEL_UNPACK_BUFFER, GL_PIXEL_PACK_BUFFER, 0, 0, size );
+
+	glBindBuffer( GL_PIXEL_PACK_BUFFER, 0 );
+	glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0 );
+
+	width_ = pbo.width_;
+	height_ = pbo.height_;
+	bpp_ = pbo.bpp_;
+	copied_ = true;
+}
+
+

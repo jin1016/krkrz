@@ -124,5 +124,10 @@ public:
 	 * フレームバッファから PBO へデータ転送する
 	 */
 	bool CopyFromFramebuffer( GLsizei width, GLsizei height, bool front );
+
+	/**
+	 * PBO からデータをコピーする
+	 */
+	void CopyFrom( const GLPixelBufferObject& pbo );
 };
 #endif // __GL_PIXEL_BUFFER_OBJECT_H__
