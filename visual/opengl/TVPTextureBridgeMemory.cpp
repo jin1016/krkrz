@@ -22,7 +22,7 @@ static bool CanUsePBO = false;
  * @param src 初期読み込み画像データ、null の時は未初期化
  */
 TVPTextureBridgeMemory::TVPTextureBridgeMemory( tjs_int w, tjs_int h, tjs_int bpp, const void* src )
-	: PixelBuffer(nullptr)
+	: PixelBuffer(nullptr), Width(w), Height(h), BPP(bpp)
 {
 	if( InitCheckPBO == false ) {
 		CanUsePBO = TVPGetOpenGLESVersion() >= 300;
@@ -32,9 +32,9 @@ TVPTextureBridgeMemory::TVPTextureBridgeMemory( tjs_int w, tjs_int h, tjs_int bp
 	if( CanUsePBO ) {
 		PixelBuffer.reset( new GLPixelBufferObject( w, h, bpp, src ) );
 	} else {
-		//Bitmap = tTVPBitmap( w, h, bpp, bool unpadding=false);
-		Bitmap = new tTVPBitmap( w, h, bpp, true ); // padding なしで生成する
 		if( src ) {
+			// データが渡された時のみ生成
+			Bitmap.reset( new tTVPBitmap( w, h, bpp, true ) ); // padding なしで生成する
 			CopyFromMemory( src );
 		}
 	}
@@ -48,10 +48,6 @@ TVPTextureBridgeMemory::TVPTextureBridgeMemory( TVPTextureBridgeMemory&& ref ) n
 
 TVPTextureBridgeMemory::~TVPTextureBridgeMemory()
 {
-	if( Bitmap ) {
-		Bitmap->Release();
-		Bitmap = nullptr;
-	}
 }
 
 // move 
@@ -60,10 +56,10 @@ TVPTextureBridgeMemory& TVPTextureBridgeMemory::operator=(TVPTextureBridgeMemory
 	if( rhs.PixelBuffer ) {
 		PixelBuffer.reset( rhs.PixelBuffer.release() );
 	} else {
-		Bitmap = rhs.Bitmap;
-		rhs.Bitmap = nullptr;
+		Bitmap = std::move(rhs.Bitmap);
+		rhs.Bitmap.release();
 	}
-	
+
 	LockType = rhs.LockType;
 	LockOffset = rhs.LockOffset;
 	LockLength = rhs.LockLength;
@@ -75,44 +71,17 @@ bool TVPTextureBridgeMemory::HasImage() const {
 	if (PixelBuffer) {
 		return PixelBuffer->HasImage();
 	} else {
-		return true;
-	}
-}
-/**
- * @return width
- */
-tjs_int TVPTextureBridgeMemory::GetWidth() const
-{
-	if( PixelBuffer ) {
-		return PixelBuffer->GetWidth();
-	} else {
-		return Bitmap->GetWidth();
-	}
-}
-/**
- * @return height
- */
-tjs_int TVPTextureBridgeMemory::GetHeight() const
-{
-	if( PixelBuffer ) {
-		return PixelBuffer->GetHeight();
-	} else {
-		return Bitmap->GetHeight();
+		return Bitmap.get() != nullptr;
 	}
 }
 
-/**
- * @return byte per pixel
- */
-tjs_int TVPTextureBridgeMemory::GetBPP() const
-{
-	if( PixelBuffer ) {
-		return PixelBuffer->GetBPP();
-	} else {
-		return Bitmap->GetBPP();
+
+// Bitmap遅延生成のためのメソッド
+void TVPTextureBridgeMemory::CheckAndCreateBitmap() {
+	if( Bitmap.get() == nullptr ) {
+		Bitmap.reset( new tTVPBitmap( Width, Height, BPP, true ) ); // padding なしで生成する
 	}
 }
-
 /**
  * メモリから work へデータ転送する
  */
@@ -121,6 +90,7 @@ void TVPTextureBridgeMemory::CopyFromMemory( const void* src )
 	if( PixelBuffer ) {
 		PixelBuffer->CopyFromMemory( src );
 	} else {
+		CheckAndCreateBitmap();
 		if( Bitmap->IsIndependent() ) {
 			// 共有されていない時のみコピー可
 			tjs_uint8* bits = static_cast<tjs_uint8*>(Bitmap->GetScanLine(0));
@@ -140,31 +110,31 @@ void TVPTextureBridgeMemory::CopyFromMemory( const void* src )
 	}
 }
 
+GLbitfield TVPTextureBridgeMemory::GetRangeLockFlag( BitmapLockType type ) {
+	switch( type ) {
+	case BitmapLockType::WRITE_ONLY:
+		return GL_MAP_WRITE_BIT;
+	case BitmapLockType::OVERWRITE_ONLY:
+		return GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT;
+	case BitmapLockType::READ_ONLY:
+		return GL_MAP_READ_BIT;
+	case BitmapLockType::READ_WRITE:
+		return GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
+	default:
+		// フラグが不明な場合、読み書きとして処理する
+		return GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
+	}
+}
 /*
  * work をロックして、指定位置のポインタを取得する
  * @param type 読み書き等の指定
  * @param offset ポインタオフセット
  * @param length バイト長さ
  */
-void* TVPTextureBridgeMemory::LockBuffer( tTVPBitmapLockType type, tjs_offset offset, tjs_size length )
+void* TVPTextureBridgeMemory::LockBuffer( BitmapLockType type, tjs_offset offset, tjs_size length )
 {
 	if( PixelBuffer ) {
-		GLbitfield flag = 0;
-		switch( type ) {
-		case tTVPBitmapLockType::WRITE_ONLY:
-			flag = GL_MAP_WRITE_BIT;
-			break;
-		case tTVPBitmapLockType::READ_ONLY:
-			flag = GL_MAP_READ_BIT;
-			break;
-		case tTVPBitmapLockType::READ_WRITE:
-			flag = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
-			break;
-		default:
-			// フラグが不明な場合、読み書きとして処理する
-			flag = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
-			break;
-		}
+		GLbitfield flag = GetRangeLockFlag( type );
 		return PixelBuffer->LockBuffer( flag, static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(length) );
 /*
 以下、追加オプションを使えばより最適化出来るが、複雑になるのでここでは扱わないものとする
@@ -174,6 +144,7 @@ GL_MAP_FLUSH_EXPLICIT_BIT
 GL_MAP_UNSYNCHRONIZED_BIT
 */
 	} else {
+		CheckAndCreateBitmap();
 		LockType = type;
 		LockOffset = offset;
 		LockLength = length;
@@ -181,30 +152,15 @@ GL_MAP_UNSYNCHRONIZED_BIT
 	}
 }
 // 矩形指定でのアクセスは効率が悪い
-void* TVPTextureBridgeMemory::LockBuffer( tTVPBitmapLockType type, tTVPRect* area )
+void* TVPTextureBridgeMemory::LockBuffer( BitmapLockType type, tTVPRect* area )
 {
 	if (PixelBuffer) {
-		GLbitfield flag = 0;
-		switch (type) {
-		case tTVPBitmapLockType::WRITE_ONLY:
-			flag = GL_MAP_WRITE_BIT;
-			break;
-		case tTVPBitmapLockType::READ_ONLY:
-			flag = GL_MAP_READ_BIT;
-			break;
-		case tTVPBitmapLockType::READ_WRITE:
-			flag = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
-			break;
-		default:
-			// フラグが不明な場合、読み書きとして処理する
-			flag = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
-			break;
-		}
+		GLbitfield flag = GetRangeLockFlag( type );
 		tjs_offset offset = Bitmap->GetStride() * area->top + ( Bitmap->GetBPP() / 32 ) * area->left;
 		tjs_size length = static_cast<tjs_size>(std::abs(static_cast<tjs_int64>( static_cast<tjs_int64>( Bitmap->GetStride()) * static_cast<tjs_int64>( area->bottom) + ( static_cast<tjs_int64>( Bitmap->GetBPP()) / 32 ) * static_cast<tjs_int64>( area->right) - offset )));
 		return PixelBuffer->LockBuffer(flag, static_cast<GLintptr>( offset ), static_cast<GLsizeiptr>( length ));
-	}
-	else {
+	} else {
+		CheckAndCreateBitmap();
 		LockType = type;
 		tjs_offset offset = Bitmap->GetStride() * area->top + ( Bitmap->GetBPP() / 32 ) * area->left;
 		tjs_size length = static_cast<tjs_size>(std::abs( static_cast<tjs_int64>( static_cast<tjs_int64>(Bitmap->GetStride()) * static_cast<tjs_int64>( area->bottom) + ( static_cast<tjs_int64>( Bitmap->GetBPP()) / 32 ) * static_cast<tjs_int64>( area->right) - offset) ));
@@ -221,6 +177,7 @@ void TVPTextureBridgeMemory::UnlockBuffer()
 	if( PixelBuffer ) {
 		PixelBuffer->UnlockBuffer();
 	} else {
+		CheckAndCreateBitmap();
 		tjs_uint lineBytes = Bitmap->GetLineBytes();
 		tjs_uint h = Bitmap->GetHeight();
 		tjs_offset startLine = LockOffset / lineBytes;
@@ -247,8 +204,9 @@ void TVPTextureBridgeMemory::CopyToTexture( GLuint tex )
 	if( PixelBuffer ) {
 		PixelBuffer->CopyToTexture( tex );
 	} else {
+		CheckAndCreateBitmap();	// 未生成の時、ゴミデータが転送される
 		glBindTexture( GL_TEXTURE_2D, tex );
-		glPixelStorei( GL_UNPACK_ALIGNMENT, Bitmap->Is32bit() ? 4 : 1 );
+		glPixelStorei( GL_UNPACK_ALIGNMENT, BPP );
 		glTexSubImage2D( GL_TEXTURE_2D, 0, DirtyRect.left, DirtyRect.top, DirtyRect.get_width(), DirtyRect.get_height(), Bitmap->Is32bit() ? GL_RGBA : GL_ALPHA, GL_UNSIGNED_BYTE, Bitmap->GetBits() );
 		glBindTexture( GL_TEXTURE_2D, 0 );
 		DirtyRect = std::move( tTVPRect( -1, -1, -1, -1 ) );
@@ -263,6 +221,7 @@ void TVPTextureBridgeMemory::CopyToTexture( GLuint tex, GLint format )
 	if( PixelBuffer ) {
 		PixelBuffer->CopyToTexture( tex, format);
 	} else {
+		CheckAndCreateBitmap();	// 未生成の時、ゴミデータが転送される
 		glBindTexture( GL_TEXTURE_2D, tex );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, Bitmap->Is32bit() ? 4 : 1 );
 		glTexSubImage2D( GL_TEXTURE_2D, 0, DirtyRect.left, DirtyRect.top, DirtyRect.get_width(), DirtyRect.get_height(), Bitmap->Is32bit() ? GL_RGBA : GL_ALPHA, GL_UNSIGNED_BYTE, Bitmap->GetBits());
@@ -279,6 +238,19 @@ bool TVPTextureBridgeMemory::CopyFromFramebuffer( GLsizei width, GLsizei height,
 	if( PixelBuffer ) {
 		return PixelBuffer->CopyFromFramebuffer( width, height, front);
 	} else {
+		CheckAndCreateBitmap();
 		return GLFrameBufferObject::readFrameBuffer( 0, 0, width, height, static_cast<tjs_uint8*>( Bitmap->GetScanLine(0) ), front );
+	}
+}
+
+/**
+ * TextureBridgeMemoryをコピーする
+ */
+void TVPTextureBridgeMemory::CopyFrom( const TVPTextureBridgeMemory& src )
+{
+	if( PixelBuffer ) {
+		PixelBuffer->CopyFrom( *src.PixelBuffer.get() );
+	} else {
+		Bitmap.reset( new tTVPBitmap( *(src.Bitmap.get()) ) );
 	}
 }
