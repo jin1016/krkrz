@@ -2,7 +2,11 @@
 #include "CharacterData.h"
 #include "tvpgl.h"
 #include "MsgIntf.h"
+
 #include <cstdlib>
+
+#include "LayerBitmapIntf.h"
+#include "LayerBitmapImpl.h"
 
 //---------------------------------------------------------------------------
 tTVPCharacterData::tTVPCharacterData( const tjs_uint8 * indata,
@@ -440,4 +444,25 @@ void tTVPCharacterData::AddHorizontalLine( tjs_int liney, tjs_int thickness, tjs
 	}
 }
 //---------------------------------------------------------------------------
-
+#include "TVPCharacterData.h"
+tTVPFontAndCharacterData::tTVPFontAndCharacterData(const struct tvp::FontAndCharacterData& ref)
+ : Font( ref.Font), FontHash( MakeFontHash(ref.Font) ), Character(ref.Character), BlurLevel(ref.BlurLevel),
+   BlurWidth(ref.BlurWidth), Antialiased(ref.Antialiased), Blured(ref.Blured), Hinting(ref.Hinting) {
+}
+//---------------------------------------------------------------------------
+tTVPFontAndCharacterData::tTVPFontAndCharacterData(struct tvp::FontAndCharacterData&& ref) noexcept {
+	*this = std::move(ref);
+}
+//---------------------------------------------------------------------------
+tTVPFontAndCharacterData& tTVPFontAndCharacterData::operator=(struct tvp::FontAndCharacterData&& rhs) noexcept {
+	Font = std::move(rhs.Font);
+	FontHash = MakeFontHash(rhs.Font);
+	Character = std::move(rhs.Character);
+	BlurLevel = std::move(rhs.BlurLevel);
+	BlurWidth = std::move(rhs.BlurWidth);
+	Antialiased = std::move(rhs.Antialiased);
+	Blured = std::move(rhs.Blured);
+	Hinting = std::move(rhs.Hinting);
+	return *this;
+}
+//---------------------------------------------------------------------------

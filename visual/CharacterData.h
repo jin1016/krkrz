@@ -11,8 +11,8 @@
  */
 struct tGlyphMetrics
 {
-	tjs_int CellIncX;		//!< 一文字進めるの必要なX方向のピクセル数
-	tjs_int CellIncY;		//!< 一文字進めるの必要なY方向のピクセル数
+	tjs_int CellIncX = 0;		//!< 一文字進めるの必要なX方向のピクセル数
+	tjs_int CellIncY = 0;		//!< 一文字進めるの必要なY方向のピクセル数
 };
 
 //---------------------------------------------------------------------------
@@ -27,22 +27,22 @@ private:
 	tjs_int RefCount;
 
 public:
-	tjs_int OriginX; //!< 文字Bitmapを描画するascent位置との横オフセット
-	tjs_int OriginY; //!< 文字Bitmapを描画するascent位置との縦オフセット
+	tjs_int OriginX = 0; //!< 文字Bitmapを描画するascent位置との横オフセット
+	tjs_int OriginY = 0; //!< 文字Bitmapを描画するascent位置との縦オフセット
 	tGlyphMetrics	Metrics; //!< メトリック、送り幅と高さを保持
-	tjs_int Pitch; //!< 保持している画像ピッチ
-	tjs_uint BlackBoxX; //!< 保持している画像幅
-	tjs_uint BlackBoxY; //!< 保持している画像高さ
-	tjs_int BlurLevel;
-	tjs_int BlurWidth;
-	tjs_uint Gray; // 階調
+	tjs_int Pitch = 0; //!< 保持している画像ピッチ
+	tjs_uint BlackBoxX = 0; //!< 保持している画像幅
+	tjs_uint BlackBoxY = 0; //!< 保持している画像高さ
+	tjs_int BlurLevel = 0;
+	tjs_int BlurWidth = 0;
+	tjs_uint Gray = 65; // 階調
 
-	bool Antialiased;
-	bool Blured;
-	bool FullColored;
+	bool Antialiased = false;
+	bool Blured = false;
+	bool FullColored = false;
 
 public:
-	tTVPCharacterData() : Gray(65), FullColored(false) { RefCount = 1; Data = NULL; }
+	tTVPCharacterData() : Gray(65), FullColored(false), RefCount(1), Data(nullptr) {}
 	tTVPCharacterData( const tjs_uint8 * indata,
 		tjs_int inpitch,
 		tjs_int originx, tjs_int originy,
@@ -52,6 +52,28 @@ public:
 	// コピー禁止
 	tTVPCharacterData(const tTVPCharacterData & ref) = delete;
 	tTVPCharacterData& operator=(const tTVPCharacterData&) = delete;
+
+	// move
+	tTVPCharacterData( tTVPCharacterData&& ref ) noexcept { *this = std::move(ref); }
+	tTVPCharacterData& operator=(tTVPCharacterData&& rhs) noexcept {
+		Data = rhs.Data;
+		RefCount = std::move( rhs.RefCount );
+
+		OriginX = std::move( rhs.OriginX );
+		OriginY = std::move( rhs.OriginY );
+		Metrics = std::move( rhs.Metrics );
+		Pitch = std::move( rhs.Pitch );
+		BlackBoxX = std::move( rhs.BlackBoxX );
+		BlackBoxY = std::move( rhs.BlackBoxY );
+		BlurLevel = std::move( rhs.BlurLevel );
+		BlurWidth = std::move( rhs.BlurWidth );
+		Gray = std::move( rhs.Gray );
+		Antialiased = std::move( rhs.Antialiased );
+		Blured = std::move( rhs.Blured );
+		FullColored = std::move( rhs.FullColored );
+		return *this;
+	}
+
 	~tTVPCharacterData() { if(Data) delete [] Data; }
 
 	void Alloc(tjs_int size) {
@@ -97,17 +119,26 @@ public:
 //---------------------------------------------------------------------------
 // Character Cache management
 //---------------------------------------------------------------------------
+namespace tvp {
+	struct FontAndCharacterData;
+};
 struct tTVPFontAndCharacterData
 {
 	tTVPFont Font;
-	tjs_uint32 FontHash;
-	tjs_char Character;
-	tjs_int BlurLevel;
-	tjs_int BlurWidth;
-	bool Antialiased;
-	bool Blured;
-	bool Hinting;
-	bool operator == (const tTVPFontAndCharacterData &rhs) const {
+	tjs_uint32 FontHash = -1;
+	tjs_char Character = TJS_W(' ');
+	tjs_int BlurLevel = 0;
+	tjs_int BlurWidth = 0;
+	bool Antialiased = true;
+	bool Blured = false;
+	bool Hinting = true;
+
+	tTVPFontAndCharacterData() {}
+	tTVPFontAndCharacterData(const struct tvp::FontAndCharacterData& ref);
+	tTVPFontAndCharacterData(struct tvp::FontAndCharacterData&& ref ) noexcept;
+	tTVPFontAndCharacterData& operator=(struct tvp::FontAndCharacterData&& rhs) noexcept;
+
+	bool operator == (const tTVPFontAndCharacterData& rhs) const {
 		return Character == rhs.Character && Font == rhs.Font &&
 			Antialiased == rhs.Antialiased && BlurLevel == rhs.BlurLevel &&
 			BlurWidth == rhs.BlurWidth && Blured == rhs.Blured &&
