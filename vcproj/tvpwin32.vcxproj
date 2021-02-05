@@ -1,6 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug Enable Debugger|Win32">
+      <Configuration>Debug Enable Debugger</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug Enable Debugger|x64">
+      <Configuration>Debug Enable Debugger</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
@@ -30,6 +38,7 @@
     <ProjectGuid>{0DA37E3E-48F9-4853-AB2A-76D79042203C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>tvpwin32</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -38,7 +47,19 @@
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
@@ -78,7 +99,13 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -99,7 +126,18 @@
     <OutDir>..\..\</OutDir>
     <TargetName>$(ProjectName)_d</TargetName>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\..\</OutDir>
+    <TargetName>$(ProjectName)_dbg</TargetName>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>tvpwin64_d</TargetName>
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\..\</OutDir>
+    <IntDir>$(Configuration)64\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|x64'">
     <TargetName>tvpwin64_d</TargetName>
     <LinkIncremental>true</LinkIncremental>
     <OutDir>..\..\</OutDir>
@@ -133,11 +171,38 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);__WIN32__;NO_STRICT;TJS_TEXT_OUT_CRLF;TJS_JP_LOCALIZED;TJS_DEBUG_DUMP_STRING;_CRT_SECURE_NO_WARNING;TVP_LOG_TO_COMMANDLINE_CONSOLE;TVP_REPORT_HW_EXCEPTION;TVP_ENABLE_EXECUTE_AT_EXCEPTION;</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../external/glm;../external/opus/include;../environ;../external/libogg/include;../external/opusfile/include;../external/angle/include;../external/baseclasses;../movie/win32;../visual/gl;../extension;../tjs2;../base;../base/win32;../;../msg;../msg/win32;../sound;../sound/win32;../utils;../utils/win32;../visual;../visual/win32;../environ/win32;../visual/IA32;../visual/opengl;./;../platform/win32;../external;../external/zlib;../external/lpng;../external/libjpeg-turbo;../external/libjpeg-turbo/vcproj;../external/onig/src;../external/freetype/include;../external/jxrlib/jxrgluelib;../external/jxrlib/image/sys</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../external/glm;../external/opus/include;../environ;../external/libogg/include;../external/opusfile/include;../external/angle/include;../external/baseclasses;../movie/win32;../visual/gl;../visual/utils;../extension;../tjs2;../base;../base/win32;../;../msg;../msg/win32;../sound;../sound/win32;../utils;../utils/win32;../visual;../visual/win32;../environ/win32;../visual/IA32;../visual/opengl;./;../platform/win32;../external;../external/zlib;../external/lpng;../external/libjpeg-turbo;../external/libjpeg-turbo/vcproj;../external/onig/src;../external/freetype/include;../external/jxrlib/jxrgluelib;../external/jxrlib/image/sys</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
       <ExceptionHandling>Async</ExceptionHandling>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>Default</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib\$(Platform)\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;dsound.lib;version.lib;mpr.lib;shlwapi.lib;vfw32.lib;imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LargeAddressAware>true</LargeAddressAware>
+    </Link>
+    <Manifest>
+      <AdditionalManifestFiles>dpi.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);__WIN32__;NO_STRICT;TJS_TEXT_OUT_CRLF;TJS_JP_LOCALIZED;TJS_DEBUG_DUMP_STRING;_CRT_SECURE_NO_WARNING;TVP_LOG_TO_COMMANDLINE_CONSOLE;TVP_REPORT_HW_EXCEPTION;TVP_ENABLE_EXECUTE_AT_EXCEPTION;ENABLE_DEBUGGER;</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>../external/glm;../external/opus/include;../environ;../external/libogg/include;../external/opusfile/include;../external/angle/include;../external/baseclasses;../movie/win32;../visual/gl;../visual/utils;../extension;../tjs2;../base;../base/win32;../;../msg;../msg/win32;../sound;../sound/win32;../utils;../utils/win32;../visual;../visual/win32;../environ/win32;../visual/IA32;../visual/opengl;./;../platform/win32;../external;../external/zlib;../external/lpng;../external/libjpeg-turbo;../external/libjpeg-turbo/vcproj;../external/onig/src;../external/freetype/include;../external/jxrlib/jxrgluelib;../external/jxrlib/image/sys</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -158,11 +223,38 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);__WIN32__;NO_STRICT;TJS_TEXT_OUT_CRLF;TJS_JP_LOCALIZED;TJS_DEBUG_DUMP_STRING;_CRT_SECURE_NO_WARNING;TVP_LOG_TO_COMMANDLINE_CONSOLE;TVP_REPORT_HW_EXCEPTION;TVP_ENABLE_EXECUTE_AT_EXCEPTION;</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../external/glm;../external/opus/include;../environ;../external/libogg/include;../external/opusfile/include;../external/angle/include;../external/baseclasses;../movie/win32;../visual/gl;../extension;../tjs2;../base;../base/win32;../;../msg;../msg/win32;../sound;../sound/win32;../utils;../utils/win32;../visual;../visual/win32;../environ/win32;../visual/IA32;../visual/opengl;./;../platform/win32;../external;../external/zlib;../external/lpng;../external/libjpeg-turbo;../external/libjpeg-turbo/vcproj;../external/onig/src;../external/freetype/include;../external/jxrlib/jxrgluelib;../external/jxrlib/image/sys</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../external/glm;../external/opus/include;../environ;../external/libogg/include;../external/opusfile/include;../external/angle/include;../external/baseclasses;../movie/win32;../visual/gl;../visual/utils;../extension;../tjs2;../base;../base/win32;../;../msg;../msg/win32;../sound;../sound/win32;../utils;../utils/win32;../visual;../visual/win32;../environ/win32;../visual/IA32;../visual/opengl;./;../platform/win32;../external;../external/zlib;../external/lpng;../external/libjpeg-turbo;../external/libjpeg-turbo/vcproj;../external/onig/src;../external/freetype/include;../external/jxrlib/jxrgluelib;../external/jxrlib/image/sys</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
       <ExceptionHandling>Async</ExceptionHandling>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>Default</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib\$(Platform)\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;dsound.lib;version.lib;mpr.lib;shlwapi.lib;vfw32.lib;imm32.lib;zlib_d.lib;libpng_d.lib;onig_s_d.lib;freetype_d.lib;turbojpeg-static_d.lib;strmbasd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LargeAddressAware>true</LargeAddressAware>
+    </Link>
+    <Manifest>
+      <AdditionalManifestFiles>dpi.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);__WIN32__;NO_STRICT;TJS_TEXT_OUT_CRLF;TJS_JP_LOCALIZED;TJS_DEBUG_DUMP_STRING;_CRT_SECURE_NO_WARNING;TVP_LOG_TO_COMMANDLINE_CONSOLE;TVP_REPORT_HW_EXCEPTION;TVP_ENABLE_EXECUTE_AT_EXCEPTION;</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>../external/glm;../external/opus/include;../environ;../external/libogg/include;../external/opusfile/include;../external/angle/include;../external/baseclasses;../movie/win32;../visual/gl;../visual/utils;../extension;../tjs2;../base;../base/win32;../;../msg;../msg/win32;../sound;../sound/win32;../utils;../utils/win32;../visual;../visual/win32;../environ/win32;../visual/IA32;../visual/opengl;./;../platform/win32;../external;../external/zlib;../external/lpng;../external/libjpeg-turbo;../external/libjpeg-turbo/vcproj;../external/onig/src;../external/freetype/include;../external/jxrlib/jxrgluelib;../external/jxrlib/image/sys</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -185,12 +277,13 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);__WIN32__;NO_STRICT;TJS_TEXT_OUT_CRLF;TJS_JP_LOCALIZED;TJS_DEBUG_DUMP_STRING;TVP_LOG_TO_COMMANDLINE_CONSOLE;DISABLE_EMBEDDED_GAME_PAD;TVP_REPORT_HW_EXCEPTION;TVP_ENABLE_EXECUTE_AT_EXCEPTION;</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../external/glm;../external/opus/include;../environ;../external/libogg/include;../external/opusfile/include;../external/angle/include;../external/baseclasses;../movie/win32;../visual/gl;../extension;../tjs2;../base;../base/win32;../;../msg;../msg/win32;../sound;../sound/win32;../utils;../utils/win32;../visual;../visual/win32;../environ/win32;../visual/IA32;../visual/opengl;./;../platform/win32;../external;../external/zlib;../external/lpng;../external/libjpeg-turbo;../external/libjpeg-turbo/vcproj;../external/onig/src;../external/freetype/include;../external/jxrlib/jxrgluelib;../external/jxrlib/image/sys</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../external/glm;../external/opus/include;../environ;../external/libogg/include;../external/opusfile/include;../external/angle/include;../external/baseclasses;../movie/win32;../visual/gl;../visual/utils;../extension;../tjs2;../base;../base/win32;../;../msg;../msg/win32;../sound;../sound/win32;../utils;../utils/win32;../visual;../visual/win32;../environ/win32;../visual/IA32;../visual/opengl;./;../platform/win32;../external;../external/zlib;../external/lpng;../external/libjpeg-turbo;../external/libjpeg-turbo/vcproj;../external/onig/src;../external/freetype/include;../external/jxrlib/jxrgluelib;../external/jxrlib/image/sys</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <ExceptionHandling>Async</ExceptionHandling>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -226,12 +319,13 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);__WIN32__;NO_STRICT;TJS_TEXT_OUT_CRLF;TJS_JP_LOCALIZED;TJS_DEBUG_DUMP_STRING;TVP_LOG_TO_COMMANDLINE_CONSOLE;DISABLE_EMBEDDED_GAME_PAD;TVP_REPORT_HW_EXCEPTION;TVP_ENABLE_EXECUTE_AT_EXCEPTION;</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../external/glm;../external/opus/include;../environ;../external/libogg/include;../external/opusfile/include;../external/angle/include;../external/baseclasses;../movie/win32;../visual/gl;../extension;../tjs2;../base;../base/win32;../;../msg;../msg/win32;../sound;../sound/win32;../utils;../utils/win32;../visual;../visual/win32;../environ/win32;../visual/IA32;../visual/opengl;./;../platform/win32;../external;../external/zlib;../external/lpng;../external/libjpeg-turbo;../external/libjpeg-turbo/vcproj;../external/onig/src;../external/freetype/include;../external/jxrlib/jxrgluelib;../external/jxrlib/image/sys</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../external/glm;../external/opus/include;../environ;../external/libogg/include;../external/opusfile/include;../external/angle/include;../external/baseclasses;../movie/win32;../visual/gl;../visual/utils;../extension;../tjs2;../base;../base/win32;../;../msg;../msg/win32;../sound;../sound/win32;../utils;../utils/win32;../visual;../visual/win32;../environ/win32;../visual/IA32;../visual/opengl;./;../platform/win32;../external;../external/zlib;../external/lpng;../external/libjpeg-turbo;../external/libjpeg-turbo/vcproj;../external/onig/src;../external/freetype/include;../external/jxrlib/jxrgluelib;../external/jxrlib/image/sys</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <ExceptionHandling>Async</ExceptionHandling>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -266,12 +360,13 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);__WIN32__;NO_STRICT;TJS_TEXT_OUT_CRLF;TJS_JP_LOCALIZED;TJS_DEBUG_DUMP_STRING;TVP_LOG_TO_COMMANDLINE_CONSOLE;DISABLE_EMBEDDED_GAME_PAD;TVP_REPORT_HW_EXCEPTION;ENABLE_DEBUGGER;</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../external/glm;../external/opus/include;../environ;../external/libogg/include;../external/opusfile/include;../external/angle/include;../external/baseclasses;../movie/win32;../visual/gl;../extension;../tjs2;../base;../base/win32;../;../msg;../msg/win32;../sound;../sound/win32;../utils;../utils/win32;../visual;../visual/win32;../environ/win32;../visual/IA32;../visual/opengl;./;../platform/win32;../external;../external/zlib;../external/lpng;../external/libjpeg-turbo;../external/libjpeg-turbo/vcproj;../external/onig/src;../external/freetype/include;../external/jxrlib/jxrgluelib;../external/jxrlib/image/sys</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../external/glm;../external/opus/include;../environ;../external/libogg/include;../external/opusfile/include;../external/angle/include;../external/baseclasses;../movie/win32;../visual/gl;../visual/utils;../extension;../tjs2;../base;../base/win32;../;../msg;../msg/win32;../sound;../sound/win32;../utils;../utils/win32;../visual;../visual/win32;../environ/win32;../visual/IA32;../visual/opengl;./;../platform/win32;../external;../external/zlib;../external/lpng;../external/libjpeg-turbo;../external/libjpeg-turbo/vcproj;../external/onig/src;../external/freetype/include;../external/jxrlib/jxrgluelib;../external/jxrlib/image/sys</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <ExceptionHandling>Async</ExceptionHandling>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -307,12 +402,13 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);__WIN32__;NO_STRICT;TJS_TEXT_OUT_CRLF;TJS_JP_LOCALIZED;TJS_DEBUG_DUMP_STRING;TVP_LOG_TO_COMMANDLINE_CONSOLE;DISABLE_EMBEDDED_GAME_PAD;TVP_REPORT_HW_EXCEPTION;ENABLE_DEBUGGER;</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../external/glm;../external/opus/include;../environ;../external/libogg/include;../external/opusfile/include;../external/angle/include;../external/baseclasses;../movie/win32;../visual/gl;../extension;../tjs2;../base;../base/win32;../;../msg;../msg/win32;../sound;../sound/win32;../utils;../utils/win32;../visual;../visual/win32;../environ/win32;../visual/IA32;../visual/opengl;./;../platform/win32;../external;../external/zlib;../external/lpng;../external/libjpeg-turbo;../external/libjpeg-turbo/vcproj;../external/onig/src;../external/freetype/include;../external/jxrlib/jxrgluelib;../external/jxrlib/image/sys</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../external/glm;../external/opus/include;../environ;../external/libogg/include;../external/opusfile/include;../external/angle/include;../external/baseclasses;../movie/win32;../visual/gl;../visual/utils;../extension;../tjs2;../base;../base/win32;../;../msg;../msg/win32;../sound;../sound/win32;../utils;../utils/win32;../visual;../visual/win32;../environ/win32;../visual/IA32;../visual/opengl;./;../platform/win32;../external;../external/zlib;../external/lpng;../external/libjpeg-turbo;../external/libjpeg-turbo/vcproj;../external/onig/src;../external/freetype/include;../external/jxrlib/jxrgluelib;../external/jxrlib/image/sys</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <ExceptionHandling>Async</ExceptionHandling>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -554,6 +650,10 @@
     <ClInclude Include="..\visual\tvpfontstruc.h" />
     <ClInclude Include="..\visual\tvpgl.h" />
     <ClInclude Include="..\visual\tvpinputdefs.h" />
+    <ClInclude Include="..\visual\utils\BitmapTextDrawer.h" />
+    <ClInclude Include="..\visual\utils\TVPCharacterData.h" />
+    <ClInclude Include="..\visual\utils\TVPColorFormat.h" />
+    <ClInclude Include="..\visual\utils\TVPCopyOnWrite.h" />
     <ClInclude Include="..\visual\VideoOvlIntf.h" />
     <ClInclude Include="..\visual\voMode.h" />
     <ClInclude Include="..\visual\win32\BasicDrawDevice.h" />
@@ -726,9 +826,11 @@
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release Enable Debugger|Win32'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|Win32'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release Enable Debugger|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <ClCompile Include="..\visual\gl\blend_function_sse2.cpp" />
     <ClCompile Include="..\visual\gl\boxblur_sse2.cpp" />
@@ -738,11 +840,13 @@
     <ClCompile Include="..\visual\gl\ResampleImage.cpp" />
     <ClCompile Include="..\visual\gl\ResampleImageAVX2.cpp">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|Win32'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release Enable Debugger|Win32'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release Enable Debugger|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <ClCompile Include="..\visual\gl\ResampleImageSSE2.cpp" />
     <ClCompile Include="..\visual\gl\tlg_sse2.cpp" />
@@ -751,11 +855,13 @@
     <ClCompile Include="..\visual\gl\x86simdutil.cpp" />
     <ClCompile Include="..\visual\gl\x86simdutilAVX2.cpp">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|Win32'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release Enable Debugger|Win32'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release Enable Debugger|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="..\visual\GraphicsLoaderIntf.cpp" />
@@ -798,6 +904,8 @@
     <ClCompile Include="..\visual\SaveTLG6.cpp" />
     <ClCompile Include="..\visual\TransIntf.cpp" />
     <ClCompile Include="..\visual\tvpgl.c" />
+    <ClCompile Include="..\visual\utils\BitmapTextDrawer.cpp" />
+    <ClCompile Include="..\visual\utils\TVPCharacterData.cpp" />
     <ClCompile Include="..\visual\VideoOvlIntf.cpp" />
     <ClCompile Include="..\visual\win32\BasicDrawDevice.cpp" />
     <ClCompile Include="..\visual\win32\BitmapBitsAlloc.cpp" />
@@ -829,9 +937,13 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release Enable Debugger|Win32'">$(Configuration)\%(Filename).obj</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release Enable Debugger|Win32'">%(Filename).nas</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">nasm -safeseh -Xvc -fwin32 -DWIN32 -I./ -I../visual/IA32/ -o ./$(Configuration)/%(Filename).obj ../visual/IA32/%(Filename).nas</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|Win32'">nasm -safeseh -Xvc -fwin32 -DWIN32 -I./ -I../visual/IA32/ -o "./$(Configuration)/%(Filename).obj" ../visual/IA32/%(Filename).nas</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).nas</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|Win32'">%(Filename).nas</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\%(Filename).obj</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|Win32'">$(Configuration)\%(Filename).obj</Outputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Enable Debugger|x64'">true</ExcludedFromBuild>
     </CustomBuild>
@@ -843,10 +955,14 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release Enable Debugger|Win32'">$(Configuration)\%(Filename).obj</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release Enable Debugger|Win32'">%(Filename).nas</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">nasm -safeseh -Xvc -fwin32 -DWIN32 -I./ -I../visual/IA32/ -o ./$(Configuration)/%(Filename).obj ../visual/IA32/%(Filename).nas</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|Win32'">nasm -safeseh -Xvc -fwin32 -DWIN32 -I./ -I../visual/IA32/ -o "./$(Configuration)/%(Filename).obj" ../visual/IA32/%(Filename).nas</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).nas</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|Win32'">%(Filename).nas</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\%(Filename).obj</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|Win32'">$(Configuration)\%(Filename).obj</Outputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Enable Debugger|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Enable Debugger|x64'">true</ExcludedFromBuild>
     </CustomBuild>
     <None Include="option_desc_ja.json" />

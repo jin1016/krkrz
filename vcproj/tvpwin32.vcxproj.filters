@@ -70,6 +70,9 @@
     <Filter Include="visual\opengl">
       <UniqueIdentifier>{cb523969-b0d1-4540-8b44-206f9db27b09}</UniqueIdentifier>
     </Filter>
+    <Filter Include="visual\utils">
+      <UniqueIdentifier>{1d766828-a6b3-4678-ad07-a3fcd85b151a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -764,6 +767,18 @@
     <ClInclude Include="..\visual\opengl\TVPOffscreen.h">
       <Filter>visual\opengl</Filter>
     </ClInclude>
+    <ClInclude Include="..\visual\utils\TVPCopyOnWrite.h">
+      <Filter>visual\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\visual\utils\BitmapTextDrawer.h">
+      <Filter>visual\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\visual\utils\TVPCharacterData.h">
+      <Filter>visual\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\visual\utils\TVPColorFormat.h">
+      <Filter>visual\utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\tjs2\tjs.cpp">
@@ -1416,6 +1431,12 @@
     </ClCompile>
     <ClCompile Include="..\visual\opengl\TVPOffscreen.cpp">
       <Filter>visual\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\visual\utils\BitmapTextDrawer.cpp">
+      <Filter>visual\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\visual\utils\TVPCharacterData.cpp">
+      <Filter>visual\utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
