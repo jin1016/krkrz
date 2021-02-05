@@ -36,10 +36,10 @@ struct tTVPDrawTextData;
 class tTVPPrerenderedFont;
 class tTVPNativeBaseBitmap
 {
+	using BitmapLockType = typename tvp::bitmap::LockType;
 public:
 	tTVPNativeBaseBitmap(tjs_uint w, tjs_uint h, tjs_uint bpp, bool unpadding=false);
 	tTVPNativeBaseBitmap(const tTVPNativeBaseBitmap & r);
-	tTVPNativeBaseBitmap(iTVPTextureInfoIntrface * texture);
 	virtual ~tTVPNativeBaseBitmap();
 
 	/* metrics */
@@ -187,6 +187,6 @@ public:
 	void operator =(const tTVPNativeBaseBitmap &rhs) { Assign(rhs); }
 };
 //---------------------------------------------------------------------------
-
-
+extern tjs_uint32 MakeFontHash(tTVPFont font);
+//---------------------------------------------------------------------------
 #endif

@@ -38,6 +38,9 @@
 #include "FontSystem.h"
 #include "FreeType.h"
 #include "FreeTypeFontRasterizer.h"
+#include "TVPBitmapLock.h"
+#include "TVPAutoLock.h"
+
 #ifdef _WIN32
 #include "TVPSysFont.h"
 #include "GDIFontRasterizer.h"
@@ -59,7 +62,7 @@ void TVPClearFontCache();
 // default FONT retrieve function
 //---------------------------------------------------------------------------
 FontSystem* TVPFontSystem = NULL;
-static tjs_int TVPGlobalFontStateMagic = 0;
+tjs_int TVPGlobalFontStateMagic = 0;
 	// this is for checking global font status' change
 
 
@@ -486,7 +489,7 @@ void tTVPBitmap::Allocate(tjs_uint width, tjs_uint height, tjs_uint bpp, bool un
 	}
 }
 //---------------------------------------------------------------------------
-void* tTVPBitmap::LockBits(tTVPBitmapLockType type, tTVPRect* area)
+void* tTVPBitmap::LockBits( tvp::bitmap::LockType type, tTVPRect* area)
 {
 	if( area ) {
 		// 範囲指定時、その範囲のアドレスを返す
@@ -549,23 +552,6 @@ tTVPNativeBaseBitmap::tTVPNativeBaseBitmap(const tTVPNativeBaseBitmap & r)
 
 	Font = r.Font;
 	FontChanged = true;
-}
-//---------------------------------------------------------------------------
-tTVPNativeBaseBitmap::tTVPNativeBaseBitmap(iTVPTextureInfoIntrface* texture)
-	: Bitmap(texture)
-{
-	TVPInializeFontRasterizers();
-	// TVPFontRasterizer->AddRef(); TODO
-
-	// texture は参照でもらって AddRef すべきか？
-	// AddRef するのが本来だが、フレームバッファへ文字を描きたいだけの場合など困るが、その辺り何とかうまくやろう
-	// フレームバッファは copy on write しない、Texture はするなど
-	Bitmap = texture;
-	texture->AddRef();
-
-	Font = TVPFontSystem->GetDefaultFont();
-	FontChanged = true;
-	GlobalFontState = -1;
 }
 //---------------------------------------------------------------------------
 tTVPNativeBaseBitmap::~tTVPNativeBaseBitmap()
@@ -798,13 +784,18 @@ void tTVPNativeBaseBitmap::ApplyFont()
 		AscentOfsY = static_cast<tjs_int>(sin(angle90) * ascent);
 
 		// compute font hash
-		FontHash = tTJSHashFunc<ttstr>::Make(Font.Face);
-		FontHash ^= Font.Height ^ Font.Flags ^ Font.Angle;
+		FontHash = MakeFontHash(Font);
 	}
 	else
 	{
 		GetCurrentRasterizer()->ApplyFont( this, false );
 	}
+}
+//---------------------------------------------------------------------------
+tjs_uint32 MakeFontHash(tTVPFont font) {
+	tjs_uint32 fonthash = tTJSHashFunc<ttstr>::Make(font.Face);
+	fonthash ^= font.Height ^ font.Flags ^ font.Angle;
+	return fonthash;
 }
 //---------------------------------------------------------------------------
 void tTVPNativeBaseBitmap::SetFont(const tTVPFont &font)
@@ -901,9 +892,9 @@ bool tTVPNativeBaseBitmap::InternalDrawText(tTVPCharacterData *data, tjs_int x,
 	// 暫定的に左端を0にする(後の処理でdrect.leftが常に加算されるため
 	tTVPRect lockRect(drect);
 	lockRect.left = 0;
-	sl = (tjs_uint8*)Bitmap->LockBits(tTVPBitmapLockType::READ_WRITE, &lockRect);
+	sl = (tjs_uint8*)Bitmap->LockBits( tvp::bitmap::LockType::READ_WRITE, &lockRect);
 
-	tTVPBitmapAutoLock lock(Bitmap);	// 書き込み完了後解放するためにロック
+	tvp::BitmapAutoLock<iTVPBitmap> lock(Bitmap);	// 書き込み完了後解放するためにロック
 	h = drect.bottom - drect.top;
 	w = drect.right - drect.left;
 	bp = data->GetData() + pitch * srect.top;
