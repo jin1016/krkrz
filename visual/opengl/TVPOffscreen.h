@@ -7,6 +7,7 @@
 // フレームバッファから取り込む機会は少ないと考えられるのと、フレームバッファサイズを時々変更して使われることも考え、PBO は今のところ対応しない。
 // 将来的に、フレームバッファから頻繁に取り込まれる可能性が出た場合に対応を考える
 class tTVPOffscreen : public iTVPTextureInfoIntrface {
+	using BitmapLockType = typename tvp::bitmap::LockType;
 	GLFrameBufferObject	FrameBuffer;
 	GLVertexBufferObject VertexBuffer;
 
@@ -32,12 +33,12 @@ public:
 
 	// iTVPBitmap intreface override
 	// 以下の2つも使われないと思われる。動作未確認。
-	tjs_int GetStride() const override { return -static_cast<tjs_int>(GetLineBytes()); }
-	tjs_uint GetLineBytes() const override { return GetWidth() * 4; }
+	tjs_int GetStride() const { return -static_cast<tjs_int>(GetLineBytes()); }
+	tjs_uint GetLineBytes() const { return GetWidth() * 4; }
 
 	// 以下非サポート
-	void* LockBits(tTVPBitmapLockType type, tjs_offset offset, tjs_size length) override { return nullptr; }
-	void* LockBits(tTVPBitmapLockType type = tTVPBitmapLockType::WRITE_ONLY, tTVPRect* area = nullptr) override { return nullptr; }
+	void* LockBits(BitmapLockType type, tjs_offset offset, tjs_size length) override { return nullptr; }
+	void* LockBits(BitmapLockType type = BitmapLockType::WRITE_ONLY, tTVPRect* area = nullptr) override { return nullptr; }
 	void UnlockBits() override { }
 };
 

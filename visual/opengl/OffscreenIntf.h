@@ -10,6 +10,7 @@
 
 class tTJSNI_Offscreen : public tTJSNativeInstance, public iTVPTextureInfoIntrface
 {
+	using BitmapLockType = typename tvp::bitmap::LockType;
 	tTVPOffscreen Offscreen;
 
 public:
@@ -42,10 +43,10 @@ public:
 	void BindFrameBuffer() { Offscreen.BindFramebuffer(); }
 
 	// iTVPBitmap intreface override
-	tjs_int GetStride() const override { return Offscreen.GetStride(); }
-	tjs_uint GetLineBytes() const override { return Offscreen.GetLineBytes(); }
-	void* LockBits(tTVPBitmapLockType type, tjs_offset offset, tjs_size length) override { return Offscreen.LockBits(type, offset, length); }
-	void* LockBits(tTVPBitmapLockType type = tTVPBitmapLockType::WRITE_ONLY, tTVPRect* area = nullptr) override { return Offscreen.LockBits(type, area); }
+	tjs_int GetStride() const { return Offscreen.GetStride(); }
+	tjs_uint GetLineBytes() const { return Offscreen.GetLineBytes(); }
+	void* LockBits(BitmapLockType type, tjs_offset offset, tjs_size length) override { return Offscreen.LockBits(type, offset, length); }
+	void* LockBits(BitmapLockType type = BitmapLockType::WRITE_ONLY, tTVPRect* area = nullptr) override { return Offscreen.LockBits(type, area); }
 	void UnlockBits() override { Offscreen.UnlockBits(); }
 };
 

@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "DebugIntf.h"
+#include "TVPBitmapLock.h"
 
 #include "tvpgl.h"
 #include "BitmapIntf.h"
@@ -13,6 +14,7 @@
 #include "GLPixelBufferObject.h"
 #include "GLVertexBufferObject.h"
 #include "TVPTextureBridgeMemory.h"
+#include "TVPBitmapLock.h"
 
 #include "TVPTexture.h"
 
@@ -22,7 +24,10 @@ tTVPTexture::tTVPTexture(tjs_uint width, tjs_uint height, GLint format, const GL
 	Texture = std::make_shared<GLTexture>( TextureBuffer, format );
 }
 
-
+tTVPTexture::tTVPTexture(tjs_uint width, tjs_uint height, enum class tvp::COLOR_FORMAT format, bool unpadding )
+: TextureBuffer( width, height, format == tvp::COLOR_FORMAT::RGBA ? 4 : 1, nullptr ), TextureFormat(static_cast<GLint>(format)) {
+	Texture = std::make_shared<GLTexture>( TextureBuffer, static_cast<GLint>(format) );
+}
 tTVPTexture::~tTVPTexture() {
 }
 
@@ -85,10 +90,10 @@ tjs_uint tTVPTexture::GetLineBytes() const {
  * @return 画像データ実体へのポイント
  */
 //void* tTVPTexture::LockBits( tTVPBitmapLockType type = tTVPBitmapLockType::WRITE_ONLY, tTVPRect* area = nullptr ) {
-void* tTVPTexture::LockBits(tTVPBitmapLockType type, tjs_offset offset, tjs_size length) {
+void* tTVPTexture::LockBits( BitmapLockType type, tjs_offset offset, tjs_size length ) {
 	return TextureBuffer.LockBuffer(type, offset, length);
 }
-void* tTVPTexture::LockBits(tTVPBitmapLockType type, tTVPRect* area ) {
+void* tTVPTexture::LockBits( BitmapLockType type, tTVPRect* area ) {
 	return TextureBuffer.LockBuffer(type, area);
 }
 /**
@@ -98,6 +103,12 @@ void tTVPTexture::UnlockBits() {
 	TextureBuffer.UnlockBuffer();
 }
 
-
 tjs_uint tTVPTexture::GetWidth() const { return TextureBuffer.GetWidth(); }
 tjs_uint tTVPTexture::GetHeight() const { return TextureBuffer.GetHeight(); }
+
+std::shared_ptr<tTVPTexture> tTVPTexture::clone() {
+	std::shared_ptr<tTVPTexture> ret = std::make_shared<tTVPTexture>( GetWidth(), GetHeight(), static_cast<GLint>(GetImageFormat()), static_cast<const GLvoid*>(nullptr) );
+	return ret;
+}
+
+	

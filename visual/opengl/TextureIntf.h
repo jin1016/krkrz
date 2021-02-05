@@ -108,16 +108,16 @@ public:
 	void SetTextureId(tjs_int64 id) { Texture->SetTextureId(id); }
 
 	// iTVPBitmap intreface override
-	tjs_int GetStride() const override  {
+	tjs_int GetStride() const {
 		return Texture->GetStride();
 	}
-	tjs_uint GetLineBytes() const override {
+	tjs_uint GetLineBytes() const {
 		return Texture->GetLineBytes();
 	}
-	void* LockBits(tTVPBitmapLockType type, tjs_offset offset, tjs_size length) override {
+	void* LockBits(tvp::bitmap::LockType type, tjs_offset offset, tjs_size length) override {
 		return Texture->LockBits(type, offset, length);
 	}
-	void* LockBits(tTVPBitmapLockType type = tTVPBitmapLockType::WRITE_ONLY, tTVPRect* area = nullptr) override {
+	void* LockBits(tvp::bitmap::LockType type = tvp::bitmap::LockType::WRITE_ONLY, tTVPRect* area = nullptr) override {
 		return Texture->LockBits(type, area );
 	}
 	void UnlockBits() override {

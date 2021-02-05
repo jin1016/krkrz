@@ -11,9 +11,14 @@
 #ifndef __TVP_TEXTURE_H__
 #define __TVP_TEXTURE_H__
 
+#include <memory>
+#include "TVPColorFormat.h"
+#include "TVPBitmapLock.h"
 #include "TextureInfo.h"
 
-class tTVPTexture : public iTVPTextureInfoIntrface {
+class tTVPTexture : public iTVPTextureInfoIntrface, public std::enable_shared_from_this<tTVPTexture> {
+	using BitmapLockType = typename tvp::bitmap::LockType;
+
 	std::shared_ptr<GLTexture> Texture;	// OpenGL ES テクスチャを表すクラス
 	GLVertexBufferObject VertexBuffer;	// テクスチャを2D描画するために使うVertex Buffer
 	GLint TextureFormat;				// OpenGL ES テクスチャのフォーマット
@@ -23,6 +28,7 @@ class tTVPTexture : public iTVPTextureInfoIntrface {
 
 public:
 	tTVPTexture(tjs_uint width, tjs_uint height, GLint format=GL_RGBA, const GLvoid* bits=nullptr );
+	tTVPTexture(tjs_uint width, tjs_uint height, enum class tvp::COLOR_FORMAT format, bool unpadding=false );
 
 	// コピーコンストラクタについては後で考える
 	// コピーは copy on write で実装できると良いか？
@@ -69,9 +75,11 @@ public:
 	 * @return 画像データ実体へのポイント
 	 */
 	//virtual void* LockBits( tTVPBitmapLockType type = tTVPBitmapLockType::WRITE_ONLY, tTVPRect* area = nullptr ) = 0;
-	void* LockBits(tTVPBitmapLockType type, tjs_offset offset, tjs_size length);
+	//void* LockBits(tTVPBitmapLockType type, tjs_offset offset, tjs_size length);
+	void* LockBits(BitmapLockType type, tjs_offset offset, tjs_size length );
 
-	void* LockBits(tTVPBitmapLockType type = tTVPBitmapLockType::WRITE_ONLY, tTVPRect* area = nullptr);
+	//void* LockBits(tTVPBitmapLockType type = tTVPBitmapLockType::WRITE_ONLY, tTVPRect* area = nullptr);
+	void* LockBits(BitmapLockType type = BitmapLockType::WRITE_ONLY, tTVPRect* area = nullptr);
 
 	/**
 	 * 画像データアクセス終了時にロックを解除する
@@ -99,6 +107,18 @@ public:
 	void SetWrapModeHorizontal(GLenum v) { Texture->setWrapS( v ); }
 	GLenum GetWrapModeVertical() const { return Texture->wrapT(); }
 	void SetWrapModeVertical(GLenum v) { Texture->setWrapT( v ); }
+
+	std::shared_ptr<tTVPTexture> get_shared_this() {
+		return shared_from_this();
+	}
+	// 自身を複製して返す。
+	// 返すBitmapは保持している内容をそのままコピーして複製を作ること。
+	// メモリ上の画像データは自身と切り離して生成する。
+	std::shared_ptr<tTVPTexture> clone();
+	uint32_t get_width() const { return GetWidth(); }
+	uint32_t get_height() const { return GetHeight(); }
+	tvp::COLOR_FORMAT get_format() const { return static_cast<tvp::COLOR_FORMAT>(GetImageFormat()); }
+	bool is_padding() const { return false; }
 };
 
 #endif

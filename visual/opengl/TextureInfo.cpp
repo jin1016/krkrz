@@ -1,9 +1,11 @@
+// このファイル自体不要になってる
 
 #include "tjsCommHead.h"
 #include "OpenGLScreen.h"
 #include "MsgIntf.h"
 #include "TextureInfo.h"
 
+/*
 tjs_uint iTVPTextureInfoIntrface::GetBPP() const {
 	switch( GetImageFormat() ) {
 	case GL_RGBA:
@@ -25,3 +27,4 @@ void* iTVPTextureInfoIntrface::GetScanLine(tjs_uint l) const {
 	TVPThrowExceptionMessage(TJS_W("This operation is not possible with textures."));
 	return nullptr;
 }
+*/
