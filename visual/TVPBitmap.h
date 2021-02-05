@@ -15,22 +15,17 @@
 #include "ComplexRect.h"
 
 #include "BitmapInfomation.h"
-
-/**
- * Lock 処理タイプ ( 実質的にOpenGL ES2.0 の時のみ意味がある )
- */
-enum class tTVPBitmapLockType : tjs_int {
-	WRITE_ONLY = 0,	// 書き込みのみなので、Lock 時に値のコピーは行わない
-	READ_ONLY = 1,	// 読み込みのみなので、Lock 時に値のコピーを行う、Unlock 時は何もせずメモリ開放
-	READ_WRITE = 2,	// 読み書きなので、Loack 時のコピーと Unlock 時の書き込みを行う
-};
+#include "TVPBitmapLock.h"
+#include "TVPAutoLock.h"
 
 
 // tTVPBitmap のインターフェイスを別途定義し、Texture クラスと Bitmap クラスでインターフェイスを共通化
 // フォント描画と copy on write を両クラスで実現できる構造にする
 class iTVPBitmap
 {
+	using BitmapLockType = typename tvp::bitmap::LockType;
 protected:
+
 	tjs_int RefCount = 1;
 
 	// DIB information
@@ -96,7 +91,7 @@ public:
 	 * 使用後 UnlockBits をコールすること
 	 * @return 画像データ実体へのポイント
 	 */
-	virtual void* LockBits( tTVPBitmapLockType type, tjs_offset offset, tjs_size length ) = 0;
+	virtual void* LockBits( BitmapLockType type, tjs_offset offset, tjs_size length ) = 0;
 
 	/**
 	* 画像の生データへのポインタを取得する(矩形指定版)
@@ -105,7 +100,7 @@ public:
 	* @param type ロック方法指定
 	* @param area ロック範囲矩形
 	*/
-	virtual void* LockBits(tTVPBitmapLockType type = tTVPBitmapLockType::WRITE_ONLY, tTVPRect* area = nullptr) = 0;
+	virtual void* LockBits( BitmapLockType type = BitmapLockType::WRITE_ONLY, tTVPRect* area = nullptr) = 0;
 
 	/**
 	 * 画像データアクセス終了時にロックを解除する
@@ -131,21 +126,12 @@ public:
 	virtual bool CanItRecreateTexture() const { return false; }
 };
 
-// LockBits でポインタ取得後、このクラスでロックを自動解除させる
-class tTVPBitmapAutoLock {
-	iTVPBitmap* Bitmap;
-public:
-	tTVPBitmapAutoLock(iTVPBitmap* bmp) : Bitmap(bmp) {}
-	~tTVPBitmapAutoLock() {
-		Bitmap->UnlockBits();
-	}
-};
-
 //---------------------------------------------------------------------------
 // tTVPBitmap : internal bitmap object
 //---------------------------------------------------------------------------
 class tTVPBitmap : public iTVPBitmap
 {
+	using BitmapLockType = typename tvp::bitmap::LockType;
 public:
 	static const tjs_int DEFAULT_PALETTE_COUNT = 256;
 
@@ -195,10 +181,10 @@ public:
 
 	const void * GetBits() const { return Bits; }
 
-	void* LockBits(tTVPBitmapLockType type, tjs_offset offset, tjs_size length) {
+	void* LockBits(BitmapLockType type, tjs_offset offset, tjs_size length) {
 		return static_cast<tjs_uint8*>(Bits) + offset;
 	}
-	void* LockBits(tTVPBitmapLockType type = tTVPBitmapLockType::WRITE_ONLY, tTVPRect* area = nullptr);
+	void* LockBits(BitmapLockType type = BitmapLockType::WRITE_ONLY, tTVPRect* area = nullptr);
 	void* GetScanLine(tjs_uint l) const;
 	// unlock は必要ない
 	void UnlockBits() {}
